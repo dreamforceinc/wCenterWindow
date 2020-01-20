@@ -1,2 +1,2 @@
 # wCenterWindow
-This program centers the current active window\nby a 'LCTRL + LWIN + C' hotkey.
+This program centers the current active window by a 'LCTRL + LWIN + C' hotkey.

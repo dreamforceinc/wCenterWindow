@@ -1,4 +1,4 @@
-﻿// resource.h
+﻿// resource.h 
 #define IDS_APP_TITLE		100
 #define IDS_CLASSNAME		101
 #define IDS_HELPTEXT		102

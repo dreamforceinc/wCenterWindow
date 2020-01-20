@@ -1,5 +1,4 @@
 ﻿// wCenterWindow.cpp : Определяет точку входа для приложения.
-//
 
 #include "framework.h"
 #include "wCenterWindow.h"

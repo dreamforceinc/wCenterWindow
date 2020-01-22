@@ -17,14 +17,16 @@ HMENU			hMenu, hPopup;
 HWND			hWnd;
 NOTIFYICONDATA	nid = { 0 };
 KBDLLHOOKSTRUCT	*pkhs;
+BOOL			pressed = FALSE, showIcon = TRUE;
+BOOL			bLCTRL = FALSE, bLWIN = FALSE, bKEYI = FALSE, bKEYC = FALSE;
 int				dtCenterX, dtCenterY;
-bool			pressed = FALSE;
 
 // Прототипы функций
 ATOM				MyRegisterClass(HINSTANCE);
 VOID				ShowError(HINSTANCE, UINT);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	KeyboardHookProc(int, WPARAM, LPARAM);
+BOOL				CreateTrayIcon();
 
 // Точка входа
 int APIENTRY wWinMain(_In_		HINSTANCE	hInstance,
@@ -43,6 +45,7 @@ int APIENTRY wWinMain(_In_		HINSTANCE	hInstance,
 		return FALSE;
 	}
 	MyRegisterClass(hInstance);
+
 	hWnd = CreateWindowExW(0, szClass, szTitle, 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
 	if (!hWnd)
 	{
@@ -50,19 +53,13 @@ int APIENTRY wWinMain(_In_		HINSTANCE	hInstance,
 		return FALSE;
 	}
 
-	nid.cbSize = sizeof(NOTIFYICONDATA);
-	nid.hWnd = hWnd;
-	nid.uVersion = NOTIFYICON_VERSION;
-	nid.uCallbackMessage = WM_WCW;
-	nid.hIcon = hIcon;
-	nid.uID = IDI_TRAYICON;
-	nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-	nid.dwInfoFlags = NIIF_INFO;
-	StringCchCopy(nid.szTip, sizeof(nid.szTip), szTitle);
-	if (!Shell_NotifyIcon(NIM_ADD, &nid))
+	if (showIcon)
 	{
-		ShowError(hInstance, IDS_ERR_ICON);
-		SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+		if (!CreateTrayIcon())
+		{
+			ShowError(hInstance, IDS_ERR_ICON);
+			SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+		}
 	}
 
 	hMenu = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MENU));
@@ -160,45 +157,85 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	pkhs = (KBDLLHOOKSTRUCT*)lParam;
-	bool bLCTRL, bLWIN;
-	GetAsyncKeyState(VK_LCONTROL) < 0 ? bLCTRL = TRUE : bLCTRL = FALSE;
-	GetAsyncKeyState(VK_LWIN) < 0 ? bLWIN = TRUE : bLWIN = FALSE;
 
-	if ((bLCTRL && bLWIN && pkhs->vkCode == 0x43) && !pressed)
+	if (wParam == WM_KEYUP)
 	{
-		pressed = TRUE;
-		HWND fgWindow = GetForegroundWindow();
-		if (fgWindow)
-		{
-			HWND parentWindow = fgWindow;
-			while (TRUE)
-			{
-				parentWindow = GetParent(fgWindow);
-				if (parentWindow) fgWindow = parentWindow;
-				else break;
-			}
-
-			WINDOWPLACEMENT wp = { 0 };
-			wp.length = sizeof(WINDOWPLACEMENT);
-			GetWindowPlacement(fgWindow, &wp);
-			if (wp.showCmd == SW_SHOWNORMAL)
-			{
-				int fgW = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
-				int fgH = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
-				int fgX = dtCenterX - (fgW / 2);
-				int fgY = dtCenterY - (fgH / 2);
-				wp.rcNormalPosition.left = fgX;
-				wp.rcNormalPosition.top = fgY;
-				wp.rcNormalPosition.right = fgX + fgW;
-				wp.rcNormalPosition.bottom = fgY + fgH;
-				SendMessage(fgWindow, WM_ENTERSIZEMOVE, NULL, NULL);
-				SetWindowPlacement(fgWindow, &wp);
-				SendMessage(fgWindow, WM_EXITSIZEMOVE, NULL, NULL);
-			}
-		}
+		if (pkhs->vkCode == VK_LCONTROL) bLCTRL = FALSE;
+		if (pkhs->vkCode == VK_LWIN) bLWIN = FALSE;
 		pressed = FALSE;
 	}
+
+	if (wParam == WM_KEYDOWN)
+	{
+		if (pkhs->vkCode == VK_LCONTROL) bLCTRL = TRUE;
+		if (pkhs->vkCode == VK_LWIN) bLWIN = TRUE;
+
+		if (bLCTRL && bLWIN && pkhs->vkCode == 0x49 && !pressed)	// 'I' key
+		{
+			pressed = TRUE;
+			showIcon = !showIcon;
+			if (showIcon)
+			{
+				if (!CreateTrayIcon())
+				{
+					ShowError(GetModuleHandle(NULL), IDS_ERR_ICON);
+					showIcon = FALSE;
+				}
+			}
+			else
+			{
+				Shell_NotifyIcon(NIM_DELETE, &nid);
+			}
+		}
+
+		if (bLCTRL && bLWIN && pkhs->vkCode == 0x43 && !pressed)	// 'C' key
+		{
+			pressed = TRUE;
+			HWND fgWindow = GetForegroundWindow();
+			if (fgWindow)
+			{
+				HWND parentWindow = fgWindow;
+				while (TRUE)
+				{
+					parentWindow = GetParent(fgWindow);
+					if (parentWindow) fgWindow = parentWindow;
+					else break;
+				}
+				WINDOWPLACEMENT wp = { 0 };
+				wp.length = sizeof(WINDOWPLACEMENT);
+				GetWindowPlacement(fgWindow, &wp);
+				if (wp.showCmd == SW_SHOWNORMAL)
+				{
+					int fgW = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
+					int fgH = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
+					int fgX = dtCenterX - (fgW / 2);
+					int fgY = dtCenterY - (fgH / 2);
+					wp.rcNormalPosition.left = fgX;
+					wp.rcNormalPosition.top = fgY;
+					wp.rcNormalPosition.right = fgX + fgW;
+					wp.rcNormalPosition.bottom = fgY + fgH;
+					SendMessage(fgWindow, WM_ENTERSIZEMOVE, NULL, NULL);
+					SetWindowPlacement(fgWindow, &wp);
+					SendMessage(fgWindow, WM_EXITSIZEMOVE, NULL, NULL);
+				}
+			}
+		}
+	}
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
+
+BOOL CreateTrayIcon()
+{
+	nid.cbSize = sizeof(NOTIFYICONDATA);
+	nid.hWnd = hWnd;
+	nid.uVersion = NOTIFYICON_VERSION;
+	nid.uCallbackMessage = WM_WCW;
+	nid.hIcon = hIcon;
+	nid.uID = IDI_TRAYICON;
+	nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+	nid.dwInfoFlags = NIIF_INFO;
+	StringCchCopy(nid.szTip, sizeof(nid.szTip), szTitle);
+	return Shell_NotifyIcon(NIM_ADD, &nid);
 }
 
 VOID ShowError(HINSTANCE hInstance, UINT uID)
@@ -207,3 +244,4 @@ VOID ShowError(HINSTANCE hInstance, UINT uID)
 	LoadStringW(hInstance, uID, szErrorText, MAX_LOADSTRING);
 	MessageBox(hWnd, szErrorText, szTitle, MB_OK | MB_ICONERROR);
 }
+

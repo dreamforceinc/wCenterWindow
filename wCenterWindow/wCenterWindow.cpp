@@ -28,6 +28,14 @@ LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	KeyboardHookProc(int, WPARAM, LPARAM);
 BOOL				CreateTrayIcon();
 
+VOID parseCmdLine()
+{
+	int nArgs = 0;
+	LPWSTR *szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+	(nArgs >= 2 && 0 == lstrcmpiW(szArglist[1], L"/hide")) ? showIcon = FALSE : showIcon = TRUE;
+	LocalFree(szArglist);
+}
+
 // Точка входа
 int APIENTRY wWinMain(_In_		HINSTANCE	hInstance,
 					  _In_opt_	HINSTANCE	hPrevInstance,
@@ -53,6 +61,7 @@ int APIENTRY wWinMain(_In_		HINSTANCE	hInstance,
 		return FALSE;
 	}
 
+	parseCmdLine();
 	if (showIcon)
 	{
 		if (!CreateTrayIcon())
@@ -244,4 +253,3 @@ VOID ShowError(HINSTANCE hInstance, UINT uID)
 	LoadStringW(hInstance, uID, szErrorText, MAX_LOADSTRING);
 	MessageBox(hWnd, szErrorText, szTitle, MB_OK | MB_ICONERROR);
 }
-

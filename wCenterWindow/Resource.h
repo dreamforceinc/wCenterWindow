@@ -1,18 +1,19 @@
 ﻿// resource.h 
 #define IDS_APP_TITLE		100
 #define IDS_CLASSNAME		101
-#define IDS_HELPTEXT		102
+#define IDS_ABOUT			102
 #define	IDI_TRAYICON		103
 #define IDR_MENU			104
-#define ID_POPUPMENU_HELP	105
-#define ID_POPUPMENU_EXIT	106
-#define IDS_ERR_MAIN		107
-#define IDS_ERR_WND			108
-#define IDS_ERR_ICON		109
-#define IDS_ERR_MENU		110
-#define IDS_ERR_POPUP		111
-#define IDS_ERR_HOOK		112
-#define IDS_RUNNING			113
+#define ID_POPUPMENU_ICON	105
+#define ID_POPUPMENU_ABOUT	106
+#define ID_POPUPMENU_EXIT	107
+#define IDS_ERR_MAIN		108
+#define IDS_ERR_WND			109
+#define IDS_ERR_ICON		110
+#define IDS_ERR_MENU		111
+#define IDS_ERR_POPUP		112
+#define IDS_ERR_HOOK		113
+#define IDS_RUNNING			114
 #define IDC_STATIC			-1
 
 // Next default values for new objects

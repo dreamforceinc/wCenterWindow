@@ -3,14 +3,14 @@
 #include "framework.h"
 #include "wCenterWindow.h"
 
-#define MAX_LOADSTRING 80
+#define MAX_LOADSTRING 32
 #define WM_WCW	WM_USER + 0x7F00
 
 // Глобальные переменные:
-HINSTANCE		hInst;						// Текущий экземпляр
-WCHAR			szTitle[MAX_LOADSTRING];	// Текст строки заголовка
-WCHAR			szClass[MAX_LOADSTRING];	// Имя класса главного окна
-WCHAR			szHelp[MAX_LOADSTRING];		// Текст описания
+HINSTANCE		hInst;							// Текущий экземпляр
+WCHAR			szTitle[MAX_LOADSTRING];		// Текст строки заголовка
+WCHAR			szClass[MAX_LOADSTRING];		// Имя класса главного окна
+WCHAR			szAbout[MAX_LOADSTRING * 9];	// Текст описания
 HHOOK			KeyboardHook;
 HICON			hIcon;
 HMENU			hMenu, hPopup;
@@ -23,18 +23,10 @@ int				dtCenterX, dtCenterY;
 
 // Прототипы функций
 ATOM				MyRegisterClass(HINSTANCE);
-VOID				ShowError(HINSTANCE, UINT);
+VOID				HandlingTrayIcon();
+VOID				ShowError(UINT);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	KeyboardHookProc(int, WPARAM, LPARAM);
-BOOL				CreateTrayIcon();
-
-VOID parseCmdLine()
-{
-	int nArgs = 0;
-	LPWSTR *szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
-	(nArgs >= 2 && 0 == lstrcmpiW(szArglist[1], L"/hide")) ? showIcon = FALSE : showIcon = TRUE;
-	LocalFree(szArglist);
-}
 
 // Точка входа
 int APIENTRY wWinMain(_In_		HINSTANCE	hInstance,
@@ -45,57 +37,40 @@ int APIENTRY wWinMain(_In_		HINSTANCE	hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-	LoadStringW(hInstance, IDS_CLASSNAME, szClass, MAX_LOADSTRING);
+	hInst = hInstance;
+
+	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, _countof(szTitle));
+	LoadStringW(hInstance, IDS_CLASSNAME, szClass, _countof(szClass));
+
 	if (FindWindow(szClass, NULL))
 	{
-		ShowError(hInstance, IDS_RUNNING);
+		ShowError(IDS_RUNNING);
 		return FALSE;
 	}
-	MyRegisterClass(hInstance);
 
+	MyRegisterClass(hInstance);
 	hWnd = CreateWindowExW(0, szClass, szTitle, 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
 	if (!hWnd)
 	{
-		ShowError(hInstance, IDS_ERR_WND);
+		ShowError(IDS_ERR_WND);
 		return FALSE;
 	}
 
-	parseCmdLine();
-	if (showIcon)
-	{
-		if (!CreateTrayIcon())
-		{
-			ShowError(hInstance, IDS_ERR_ICON);
-			SendMessage(hWnd, WM_CLOSE, NULL, NULL);
-		}
-	}
+	nid.cbSize = sizeof(NOTIFYICONDATA);
+	nid.hWnd = hWnd;
+	nid.uVersion = NOTIFYICON_VERSION;
+	nid.uCallbackMessage = WM_WCW;
+	nid.hIcon = hIcon;
+	nid.uID = IDI_TRAYICON;
+	nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+	nid.dwInfoFlags = NIIF_INFO;
+	StringCchCopy(nid.szTip, _countof(nid.szTip), szTitle);
 
-	hMenu = LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MENU));
-	if (!hMenu)
-	{
-		ShowError(hInstance, IDS_ERR_MENU);
-		SendMessage(hWnd, WM_CLOSE, NULL, NULL);
-	}
-
-	hPopup = GetSubMenu(hMenu, 0);
-	if (!hPopup)
-	{
-		ShowError(hInstance, IDS_ERR_POPUP);
-		SendMessage(hWnd, WM_CLOSE, NULL, NULL);
-	}
-
-	KeyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardHookProc, hInstance, NULL);
-	if (!KeyboardHook)
-	{
-		ShowError(hInstance, IDS_ERR_HOOK);
-		SendMessage(hWnd, WM_CLOSE, NULL, NULL);
-	}
-
-	LoadStringW(hInstance, IDS_HELPTEXT, szHelp, MAX_LOADSTRING);
-	RECT dtrc = { 0 };
-	SystemParametersInfo(SPI_GETWORKAREA, NULL, &dtrc, FALSE);
-	dtCenterX = dtrc.right / 2, dtCenterY = dtrc.bottom / 2;
+	int nArgs = 0;
+	LPWSTR *szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+	(nArgs >= 2 && 0 == lstrcmpiW(szArglist[1], L"/hide")) ? showIcon = FALSE : showIcon = TRUE;
+	LocalFree(szArglist);
+	HandlingTrayIcon();
 
 	MSG msg;
 	BOOL bRet;
@@ -104,7 +79,7 @@ int APIENTRY wWinMain(_In_		HINSTANCE	hInstance,
 	{
 		if (bRet == -1)
 		{
-			ShowError(hInstance, IDS_ERR_MAIN);
+			ShowError(IDS_ERR_MAIN);
 			return -1;
 		}
 		else
@@ -134,6 +109,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
+	case WM_CREATE:
+	{
+		hMenu = LoadMenu(hInst, MAKEINTRESOURCE(IDR_MENU));
+		if (!hMenu)
+		{
+			ShowError(IDS_ERR_MENU);
+			SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+		}
+
+		hPopup = GetSubMenu(hMenu, 0);
+		if (!hPopup)
+		{
+			ShowError(IDS_ERR_POPUP);
+			SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+		}
+
+		KeyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardHookProc, hInst, NULL);
+		if (!KeyboardHook)
+		{
+			ShowError(IDS_ERR_HOOK);
+			SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+		}
+
+		LoadStringW(hInst, IDS_ABOUT, szAbout, _countof(szAbout));
+		RECT dtrc = { 0 };
+		SystemParametersInfo(SPI_GETWORKAREA, NULL, &dtrc, FALSE);
+		dtCenterX = dtrc.right / 2, dtCenterY = dtrc.bottom / 2;
+		break;
+	}
 	case WM_WCW:
 		if (lParam == WM_RBUTTONDOWN && wParam == IDI_TRAYICON)
 		{
@@ -141,10 +145,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			POINT pt;
 			GetCursorPos(&pt);
 			int idMenu = TrackPopupMenu(hPopup, TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, NULL);
-			if (idMenu == ID_POPUPMENU_HELP && !pressed)
+			if (idMenu == ID_POPUPMENU_ICON)
+			{
+				showIcon = FALSE;
+				HandlingTrayIcon();
+			}
+			if (idMenu == ID_POPUPMENU_ABOUT && !pressed)
 			{
 				pressed = TRUE;
-				if (MessageBox(hWnd, szHelp, szTitle, MB_OK | MB_TOPMOST) == IDOK) pressed = FALSE;
+				if (MessageBox(hWnd, szAbout, szTitle, MB_OK | MB_TOPMOST) == IDOK) pressed = FALSE;
 			}
 			if (idMenu == ID_POPUPMENU_EXIT) SendMessage(hWnd, WM_CLOSE, NULL, NULL);
 		}
@@ -183,18 +192,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 		{
 			pressed = TRUE;
 			showIcon = !showIcon;
-			if (showIcon)
-			{
-				if (!CreateTrayIcon())
-				{
-					ShowError(GetModuleHandle(NULL), IDS_ERR_ICON);
-					showIcon = FALSE;
-				}
-			}
-			else
-			{
-				Shell_NotifyIcon(NIM_DELETE, &nid);
-			}
+			HandlingTrayIcon();
 		}
 
 		if (bLCTRL && bLWIN && pkhs->vkCode == 0x43 && !pressed)	// 'C' key
@@ -233,23 +231,26 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-BOOL CreateTrayIcon()
+VOID HandlingTrayIcon()
 {
-	nid.cbSize = sizeof(NOTIFYICONDATA);
-	nid.hWnd = hWnd;
-	nid.uVersion = NOTIFYICON_VERSION;
-	nid.uCallbackMessage = WM_WCW;
-	nid.hIcon = hIcon;
-	nid.uID = IDI_TRAYICON;
-	nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-	nid.dwInfoFlags = NIIF_INFO;
-	StringCchCopy(nid.szTip, sizeof(nid.szTip), szTitle);
-	return Shell_NotifyIcon(NIM_ADD, &nid);
+	if (showIcon)
+	{
+		if (!Shell_NotifyIcon(NIM_ADD, &nid))
+		{
+			ShowError(IDS_ERR_ICON);
+			showIcon = FALSE;
+		}
+	}
+	else
+	{
+		Shell_NotifyIcon(NIM_DELETE, &nid);
+	}
+
 }
 
-VOID ShowError(HINSTANCE hInstance, UINT uID)
+VOID ShowError(UINT uID)
 {
 	WCHAR szErrorText[MAX_LOADSTRING]; // Текст ошибки
-	LoadStringW(hInstance, uID, szErrorText, MAX_LOADSTRING);
+	LoadStringW(hInst, uID, szErrorText, _countof(szErrorText));
 	MessageBox(hWnd, szErrorText, szTitle, MB_OK | MB_ICONERROR);
 }

@@ -1,46 +1,46 @@
-﻿// wCenterWindow.cpp : Определяет точку входа для приложения.
+// wCenterWindow, v2.1
 
-#include "framework.h"
-#include "wCenterWindow.h"
+#include <windows.h>
+#include <strsafe.h>
+#include "resource.h"
+#include "S:\MyFunctions\MoveWindowToMonitorCenter.h"
 
 #define MAX_LOADSTRING 32
-#define WM_WCW	WM_USER + 0x7F00
+#define WM_WCW	0x8F00
 
-// Глобальные переменные:
-HINSTANCE		hInst;							// Текущий экземпляр
-WCHAR			szTitle[MAX_LOADSTRING];		// Текст строки заголовка
-WCHAR			szClass[MAX_LOADSTRING];		// Имя класса главного окна
-WCHAR			szAbout[MAX_LOADSTRING * 9];	// Текст описания
-HHOOK			KeyboardHook;
-HICON			hIcon;
-HMENU			hMenu, hPopup;
-HWND			hWnd;
-NOTIFYICONDATA	nid = { 0 };
-KBDLLHOOKSTRUCT	*pkhs;
-BOOL			pressed = FALSE, showIcon = TRUE;
-BOOL			bLCTRL = FALSE, bLWIN = FALSE, bKEYI = FALSE, bKEYC = FALSE;
-int				dtCenterX, dtCenterY;
+// Global variables:
+HINSTANCE			hInst;							// Instance
+CHAR				szTitle[MAX_LOADSTRING];		// Window's title
+CHAR				szClass[MAX_LOADSTRING];		// Window's class
+CHAR				szAbout[MAX_LOADSTRING * 14];	// Description text
+HHOOK				KeyboardHook;
+HICON				hIcon;
+HMENU				hMenu, hPopup;
+HWND				hWnd, hTaskBar, hDesktop, hProgman;
+BOOL				bPressed = FALSE, bShowIcon = TRUE, bWorkArea = TRUE;
+BOOL				bLCTRL = FALSE, bLWIN = FALSE, bKEYI = FALSE, bKEYC = FALSE;
 
-// Прототипы функций
+NOTIFYICONDATA		nid = { 0 };
+LPKBDLLHOOKSTRUCT	pkhs;
+MENUITEMINFO		mii;
+POINT				ptMousePos;
+
+// Function's prototypes
 ATOM				MyRegisterClass(HINSTANCE);
 VOID				HandlingTrayIcon();
 VOID				ShowError(UINT);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	KeyboardHookProc(int, WPARAM, LPARAM);
 
-// Точка входа
-int APIENTRY wWinMain(_In_		HINSTANCE	hInstance,
-					  _In_opt_	HINSTANCE	hPrevInstance,
-					  _In_		LPWSTR		lpCmdLine,
-					  _In_		int			nCmdShow)
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
 	hInst = hInstance;
 
-	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, _countof(szTitle));
-	LoadStringW(hInstance, IDS_CLASSNAME, szClass, _countof(szClass));
+	LoadString(hInstance, IDS_APP_TITLE, szTitle, _countof(szTitle));
+	LoadString(hInstance, IDS_CLASSNAME, szClass, _countof(szClass));
 
 	if (FindWindow(szClass, NULL))
 	{
@@ -49,28 +49,22 @@ int APIENTRY wWinMain(_In_		HINSTANCE	hInstance,
 	}
 
 	MyRegisterClass(hInstance);
-	hWnd = CreateWindowExW(0, szClass, szTitle, 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
+	hWnd = CreateWindowEx(0, szClass, szTitle, 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
 	if (!hWnd)
 	{
 		ShowError(IDS_ERR_WND);
 		return FALSE;
 	}
 
-	nid.cbSize = sizeof(NOTIFYICONDATA);
-	nid.hWnd = hWnd;
-	nid.uVersion = NOTIFYICON_VERSION;
-	nid.uCallbackMessage = WM_WCW;
-	nid.hIcon = hIcon;
-	nid.uID = IDI_TRAYICON;
-	nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-	nid.dwInfoFlags = NIIF_INFO;
-	StringCchCopy(nid.szTip, _countof(nid.szTip), szTitle);
-
 	int nArgs = 0;
 	LPWSTR *szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
-	(nArgs >= 2 && 0 == lstrcmpiW(szArglist[1], L"/hide")) ? showIcon = FALSE : showIcon = TRUE;
+	(nArgs >= 2 && 0 == lstrcmpiW(szArglist[1], L"/hide")) ? bShowIcon = FALSE : bShowIcon = TRUE;
 	LocalFree(szArglist);
 	HandlingTrayIcon();
+
+	hTaskBar = FindWindow("Shell_TrayWnd", NULL);
+	hProgman = FindWindow("Progman", NULL);
+	hDesktop = GetDesktopWindow();
 
 	MSG msg;
 	BOOL bRet;
@@ -109,68 +103,92 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
-	case WM_CREATE:
-	{
-		hMenu = LoadMenu(hInst, MAKEINTRESOURCE(IDR_MENU));
-		if (!hMenu)
+		case WM_CREATE:
 		{
-			ShowError(IDS_ERR_MENU);
-			SendMessage(hWnd, WM_CLOSE, NULL, NULL);
-		}
-
-		hPopup = GetSubMenu(hMenu, 0);
-		if (!hPopup)
-		{
-			ShowError(IDS_ERR_POPUP);
-			SendMessage(hWnd, WM_CLOSE, NULL, NULL);
-		}
-
-		KeyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardHookProc, hInst, NULL);
-		if (!KeyboardHook)
-		{
-			ShowError(IDS_ERR_HOOK);
-			SendMessage(hWnd, WM_CLOSE, NULL, NULL);
-		}
-
-		LoadStringW(hInst, IDS_ABOUT, szAbout, _countof(szAbout));
-		RECT dtrc = { 0 };
-		SystemParametersInfo(SPI_GETWORKAREA, NULL, &dtrc, FALSE);
-		dtCenterX = dtrc.right / 2, dtCenterY = dtrc.bottom / 2;
-		break;
-	}
-	case WM_WCW:
-		if (lParam == WM_RBUTTONDOWN && wParam == IDI_TRAYICON)
-		{
-			SetForegroundWindow(hWnd);
-			POINT pt;
-			GetCursorPos(&pt);
-			int idMenu = TrackPopupMenu(hPopup, TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, NULL);
-			if (idMenu == ID_POPUPMENU_ICON)
+			hMenu = LoadMenu(hInst, MAKEINTRESOURCE(IDR_MENU));
+			if (!hMenu)
 			{
-				showIcon = FALSE;
-				HandlingTrayIcon();
+				ShowError(IDS_ERR_MENU);
+				SendMessage(hWnd, WM_CLOSE, NULL, NULL);
 			}
-			if (idMenu == ID_POPUPMENU_ABOUT && !pressed)
+
+			hPopup = GetSubMenu(hMenu, 0);
+			if (!hPopup)
 			{
-				pressed = TRUE;
-				if (MessageBox(hWnd, szAbout, szTitle, MB_OK | MB_TOPMOST) == IDOK) pressed = FALSE;
+				ShowError(IDS_ERR_POPUP);
+				SendMessage(hWnd, WM_CLOSE, NULL, NULL);
 			}
-			if (idMenu == ID_POPUPMENU_EXIT) SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+
+			mii.cbSize = sizeof(MENUITEMINFO);
+			mii.fMask = MIIM_STATE;
+			bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
+			SetMenuItemInfo(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
+
+			nid.cbSize = sizeof(NOTIFYICONDATA);
+			nid.hWnd = hWnd;
+			nid.uVersion = NOTIFYICON_VERSION;
+			nid.uCallbackMessage = WM_WCW;
+			nid.hIcon = hIcon;
+			nid.uID = IDI_TRAYICON;
+			nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+			nid.dwInfoFlags = NIIF_INFO;
+			StringCchCopy(nid.szTip, _countof(nid.szTip), szTitle);
+
+			KeyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardHookProc, hInst, NULL);
+			if (!KeyboardHook)
+			{
+				ShowError(IDS_ERR_HOOK);
+				SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+			}
+
+			LoadString(hInst, IDS_ABOUT, szAbout, _countof(szAbout));
 		}
 		break;
 
-	case WM_DESTROY:
-		if (KeyboardHook) UnhookWindowsHookEx(KeyboardHook);
-		if (hMenu) DestroyMenu(hMenu);
-		Shell_NotifyIcon(NIM_DELETE, &nid);
-		PostQuitMessage(0);
+		case WM_WCW:
+		{
+			if (lParam == WM_RBUTTONDOWN && wParam == IDI_TRAYICON)
+			{
+				SetForegroundWindow(hWnd);
+				POINT pt;
+				GetCursorPos(&pt);
+				int idMenu = TrackPopupMenu(hPopup, TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, NULL);
+				if (idMenu == ID_POPUPMENU_ICON)
+				{
+					bShowIcon = FALSE;
+					HandlingTrayIcon();
+				}
+				if (idMenu == ID_POPUPMENU_AREA)
+				{
+					bWorkArea = !bWorkArea;
+					bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
+					SetMenuItemInfo(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
+				}
+				if (idMenu == ID_POPUPMENU_ABOUT && !bPressed)
+				{
+					bPressed = TRUE;
+					if (MessageBox(hWnd, szAbout, szTitle, MB_OK | MB_TOPMOST | MB_ICONINFORMATION) == IDOK) bPressed = FALSE;
+				}
+				if (idMenu == ID_POPUPMENU_EXIT) SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+			}
+		}
 		break;
 
-	default:
-		return DefWindowProc(hWnd, message, wParam, lParam);
+		case WM_DESTROY:
+		{
+			if (KeyboardHook) UnhookWindowsHookEx(KeyboardHook);
+			if (hMenu) DestroyMenu(hMenu);
+			Shell_NotifyIcon(NIM_DELETE, &nid);
+			PostQuitMessage(0);
+		}
+		break;
+
+		default:
+			return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 	return 0;
 }
+
 
 LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
@@ -180,7 +198,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 	{
 		if (pkhs->vkCode == VK_LCONTROL) bLCTRL = FALSE;
 		if (pkhs->vkCode == VK_LWIN) bLWIN = FALSE;
-		pressed = FALSE;
+		bPressed = FALSE;
 	}
 
 	if (wParam == WM_KEYDOWN)
@@ -188,44 +206,34 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 		if (pkhs->vkCode == VK_LCONTROL) bLCTRL = TRUE;
 		if (pkhs->vkCode == VK_LWIN) bLWIN = TRUE;
 
-		if (bLCTRL && bLWIN && pkhs->vkCode == 0x49 && !pressed)	// 'I' key
+		if (bLCTRL && bLWIN && pkhs->vkCode == 0x49 && !bPressed)	// 'I' key
 		{
-			pressed = TRUE;
-			showIcon = !showIcon;
+			bPressed = TRUE;
+			bShowIcon = !bShowIcon;
 			HandlingTrayIcon();
+			return TRUE;
 		}
 
-		if (bLCTRL && bLWIN && pkhs->vkCode == 0x43 && !pressed)	// 'C' key
+		if (bLCTRL && bLWIN && pkhs->vkCode == 0x43 && !bPressed)	// 'C' key
 		{
-			pressed = TRUE;
-			HWND fgWindow = GetForegroundWindow();
-			if (fgWindow)
+			bPressed = TRUE;
+			HWND hFgWnd = GetForegroundWindow();
+
+			if (hFgWnd)
 			{
-				HWND parentWindow = fgWindow;
-				while (TRUE)
+				if (hFgWnd != hDesktop && hFgWnd != hTaskBar && hFgWnd != hProgman)
 				{
-					parentWindow = GetParent(fgWindow);
-					if (parentWindow) fgWindow = parentWindow;
-					else break;
-				}
-				WINDOWPLACEMENT wp = { 0 };
-				wp.length = sizeof(WINDOWPLACEMENT);
-				GetWindowPlacement(fgWindow, &wp);
-				if (wp.showCmd == SW_SHOWNORMAL)
-				{
-					int fgW = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
-					int fgH = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
-					int fgX = dtCenterX - (fgW / 2);
-					int fgY = dtCenterY - (fgH / 2);
-					wp.rcNormalPosition.left = fgX;
-					wp.rcNormalPosition.top = fgY;
-					wp.rcNormalPosition.right = fgX + fgW;
-					wp.rcNormalPosition.bottom = fgY + fgH;
-					SendMessage(fgWindow, WM_ENTERSIZEMOVE, NULL, NULL);
-					SetWindowPlacement(fgWindow, &wp);
-					SendMessage(fgWindow, WM_EXITSIZEMOVE, NULL, NULL);
+					if (!IsIconic(hFgWnd) && !IsZoomed(hFgWnd))
+					{
+						RECT fgwrc;
+						GetWindowRect(hFgWnd, &fgwrc);
+						LONG fgWidth = fgwrc.right - fgwrc.left;
+						LONG fgHeight = fgwrc.bottom - fgwrc.top;
+						MoveWindowToMonitorCenter(hFgWnd, fgWidth, fgHeight, bWorkArea, FALSE);
+					}
 				}
 			}
+			return TRUE;
 		}
 	}
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
@@ -233,24 +241,23 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 VOID HandlingTrayIcon()
 {
-	if (showIcon)
+	if (bShowIcon)
 	{
 		if (!Shell_NotifyIcon(NIM_ADD, &nid))
 		{
 			ShowError(IDS_ERR_ICON);
-			showIcon = FALSE;
+			bShowIcon = FALSE;
 		}
 	}
 	else
 	{
 		Shell_NotifyIcon(NIM_DELETE, &nid);
 	}
-
 }
 
 VOID ShowError(UINT uID)
 {
-	WCHAR szErrorText[MAX_LOADSTRING]; // Текст ошибки
-	LoadStringW(hInst, uID, szErrorText, _countof(szErrorText));
+	CHAR szErrorText[MAX_LOADSTRING]; // Error's text
+	LoadString(hInst, uID, szErrorText, _countof(szErrorText));
 	MessageBox(hWnd, szErrorText, szTitle, MB_OK | MB_ICONERROR);
 }

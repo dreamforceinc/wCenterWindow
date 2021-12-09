@@ -1,8 +1,9 @@
-// wCenterWindow, v2.2
+// wCenterWindow, v2.3
 //
 
 #include "framework.h"
 #include "wCenterWindow.h"
+#include "Logger.h"
 
 #define KEY_I 0x49
 #define KEY_C 0x43
@@ -59,10 +60,14 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
 VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 {
+	diag_log(L"Entering MoveWindowToMonitorCenter(): hwnd =", hwnd);
+
 	RECT fgwrc;
 	GetWindowRect(hwnd, &fgwrc);
 	LONG nWidth = fgwrc.right - fgwrc.left;
 	LONG nHeight = fgwrc.bottom - fgwrc.top;
+
+	diag_log(L"Moving window from x =", fgwrc.left, L" y =", fgwrc.top, L" r =", fgwrc.right, L" b =", fgwrc.bottom);
 
 	MONITORINFO mi;
 	mi.cbSize = sizeof(MONITORINFO);
@@ -95,6 +100,8 @@ VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 	SendMessage(hwnd, WM_ENTERSIZEMOVE, NULL, NULL);
 	MoveWindow(hwnd, x, y, nWidth, nHeight, TRUE);
 	SendMessage(hwnd, WM_EXITSIZEMOVE, NULL, NULL);
+
+	diag_log(L"Moving window to x =", x, L" y =", y, L" r =", aw, L" b =", ah);
 }
 
 
@@ -103,6 +110,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
+
+	OpenLogFile();
+	diag_log(L"Entering WinMain()...");
 
 	hInst = hInstance;
 
@@ -125,6 +135,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 
 	int nArgs = 0;
 	LPWSTR* szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+
+	diag_log(L"nArgs =", nArgs, L" Args: ", *szArglist);
+
 	(nArgs >= 2 && 0 == lstrcmpiW(szArglist[1], TEXT("/hide"))) ? bShowIcon = FALSE : bShowIcon = TRUE;
 	LocalFree(szArglist);
 	HandlingTrayIcon();
@@ -154,6 +167,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	if (hKbdHook) UnhookWindowsHookEx(hKbdHook);
 	if (hMenu) DestroyMenu(hMenu);
 	Shell_NotifyIcon(NIM_DELETE, &nid);
+
+	diag_log(L"Quiting WinMain(). msg.wParam =", (int)msg.wParam);
+	CloseLogFile();
 
 	return (int)msg.wParam;
 }
@@ -384,10 +400,12 @@ BOOL CheckWindow(HWND hFW)
 
 VOID HandlingTrayIcon()
 {
+	diag_log(L"Entering HandlingTrayIcon()...", L" bShowIcon=", bShowIcon);
 	if (bShowIcon)
 	{
 		if (!Shell_NotifyIcon(NIM_ADD, &nid))
 		{
+			diag_log(L"GetLastError():", GetLastError());
 			ShowError(IDS_ERR_ICON);
 			bShowIcon = FALSE;
 		}
@@ -396,6 +414,7 @@ VOID HandlingTrayIcon()
 	{
 		Shell_NotifyIcon(NIM_DELETE, &nid);
 	}
+	diag_log(L"Quiting HandlingTrayIcon()...");
 }
 
 VOID ShowError(UINT uID)

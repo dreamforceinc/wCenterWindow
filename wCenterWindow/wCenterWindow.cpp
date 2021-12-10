@@ -67,7 +67,7 @@ VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 	LONG nWidth = fgwrc.right - fgwrc.left;
 	LONG nHeight = fgwrc.bottom - fgwrc.top;
 
-	diag_log(L"Moving window from x =", fgwrc.left, L" y =", fgwrc.top, L" r =", fgwrc.right, L" b =", fgwrc.bottom);
+	diag_log(L"Moving window from x =", fgwrc.left, L"y =", fgwrc.top);
 
 	MONITORINFO mi;
 	mi.cbSize = sizeof(MONITORINFO);
@@ -101,7 +101,8 @@ VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 	MoveWindow(hwnd, x, y, nWidth, nHeight, TRUE);
 	SendMessage(hwnd, WM_EXITSIZEMOVE, NULL, NULL);
 
-	diag_log(L"Moving window to x =", x, L" y =", y, L" r =", aw, L" b =", ah);
+	diag_log(L"Moving window to x =", x, L"y =", y);
+	diag_log(L"Quiting MoveWindowToMonitorCenter()");
 }
 
 
@@ -112,7 +113,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
 	OpenLogFile();
-	diag_log(L"Entering WinMain()...");
+	diag_log(L"Entering WinMain()");
 
 	hInst = hInstance;
 
@@ -136,7 +137,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	int nArgs = 0;
 	LPWSTR* szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
 
-	diag_log(L"nArgs =", nArgs, L" Args: ", *szArglist);
+	diag_log(L"nArgs =", nArgs, L", Args: ", *szArglist);
 
 	(nArgs >= 2 && 0 == lstrcmpiW(szArglist[1], TEXT("/hide"))) ? bShowIcon = FALSE : bShowIcon = TRUE;
 	LocalFree(szArglist);
@@ -400,7 +401,7 @@ BOOL CheckWindow(HWND hFW)
 
 VOID HandlingTrayIcon()
 {
-	diag_log(L"Entering HandlingTrayIcon()...", L" bShowIcon=", bShowIcon);
+	diag_log(L"Entering HandlingTrayIcon(). bShowIcon =", bShowIcon);
 	if (bShowIcon)
 	{
 		if (!Shell_NotifyIcon(NIM_ADD, &nid))
@@ -414,7 +415,7 @@ VOID HandlingTrayIcon()
 	{
 		Shell_NotifyIcon(NIM_DELETE, &nid);
 	}
-	diag_log(L"Quiting HandlingTrayIcon()...");
+	diag_log(L"Quiting HandlingTrayIcon()");
 }
 
 VOID ShowError(UINT uID)

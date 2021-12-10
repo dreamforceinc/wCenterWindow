@@ -37,6 +37,11 @@ void OpenLogFile() {
 	fs::path log_path = lpszPath;
 	log_path.replace_extension(L".log");
 	std::wstring logname = log_path.stem() += L".log";
+	std::wstring backupname = log_path.stem() += L".bak";
+
+	if (fs::exists(logname)) {
+		fs::rename(logname, backupname);
+	}
 
 	logfile.open(logname);
 	if (logfile.is_open()) {

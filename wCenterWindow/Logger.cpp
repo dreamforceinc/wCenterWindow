@@ -36,18 +36,16 @@ void OpenLogFile() {
 
 	fs::path log_path = lpszPath;
 	log_path.replace_extension(L".log");
-	std::wstring logname = log_path.stem() += L".log";
-	std::wstring backupname = log_path.stem() += L".bak";
+	fs::path bak_path = log_path;
+	bak_path.replace_extension(L".bak");
 
-	if (fs::exists(logname)) {
-		fs::rename(logname, backupname);
-	}
+	if (fs::exists(log_path)) fs::rename(log_path, bak_path);
 
-	logfile.open(logname);
+	logfile.open(log_path);
 	if (logfile.is_open()) {
 		diag_log(L"Starting logging.");
-		diag_log(L"logfile:", logname);
-		diag_log(logname, L"successfully opened.");
+		diag_log(L"logfile:", log_path);
+		diag_log(log_path, L"successfully opened.");
 	} else {
 		MessageBoxW(NULL, L"Can't open logfile! Working without logging.", L"WARNING", MB_OK | MB_ICONWARNING);
 	}

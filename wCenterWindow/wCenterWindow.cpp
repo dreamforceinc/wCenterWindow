@@ -1,5 +1,8 @@
 // wCenterWindow, v2.3
 //
+// TODO: More verbose logs
+// TODO: More verbose error messages
+// TODO: Window's title in logs
 
 #include "framework.h"
 #include "wCenterWindow.h"

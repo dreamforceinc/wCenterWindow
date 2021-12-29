@@ -4,6 +4,7 @@
 
 extern std::wofstream logfile;
 std::wstring GetTimeStamp();
+std::wstring PrintTitle();
 
 template <typename T1>
 void diag_log(T1 arg1) {
@@ -26,6 +27,10 @@ void diag_log(T1 arg1, T2 arg2, T3 arg3) {
 template <typename T1, typename T2, typename T3, typename T4>
 void diag_log(T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
 	//std::wcout << GetTimeStamp() << arg1 << ' ' << arg2 << ' ' << arg3 << ' ' << arg4 << std::endl;
+	//if (typeid(T4) == typeid(WCHAR)) {
+	//	logfile << GetTimeStamp() << arg1 << ' ' << arg2 << ' ' << arg3 << ' ' << PrintTitle() << std::endl;
+	//	return;
+	//}
 	logfile << GetTimeStamp() << arg1 << ' ' << arg2 << ' ' << arg3 << ' ' << arg4 << std::endl;
 }
 

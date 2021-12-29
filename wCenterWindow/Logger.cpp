@@ -11,7 +11,14 @@
 #define PATH_LEN 1024
 
 std::wofstream logfile;
+extern LPVOID szBuffer;
 namespace fs = std::filesystem;
+
+std::wstring PrintTitle() {
+	wchar_t szWinTitle[2048];
+	StringCchPrintf(szWinTitle, 2048, L"%s", szBuffer);
+	return szWinTitle;
+}
 
 std::wstring GetTimeStamp() {
 	SYSTEMTIME lt;
@@ -40,7 +47,9 @@ void OpenLogFile() {
 	bak_path.replace_extension(L".bak");
 
 	if (fs::exists(log_path)) fs::rename(log_path, bak_path);
-
+#ifdef _DEBUG
+	log_path = L"d:\\test.log";
+#endif
 	logfile.open(log_path);
 	if (logfile.is_open()) {
 		diag_log(L"Starting logging.");

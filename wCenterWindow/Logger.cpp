@@ -1,16 +1,13 @@
+// wCenterWindow, v2.3.1
 // Logger.cpp
 //
-#include <fstream>
-#include <filesystem>
-#include <string>
-#include <strsafe.h>
-#include <Windows.h>
-#include "Logger.h"
+#include "framework.h"
 
 #define TS_LEN 30
 #define PATH_LEN 1024
 
 std::wofstream logfile;
+extern WCHAR szTitle[];
 extern LPVOID szBuffer;
 namespace fs = std::filesystem;
 
@@ -24,20 +21,20 @@ std::wstring GetTimeStamp() {
 	SYSTEMTIME lt;
 	GetLocalTime(&lt);
 	wchar_t ts[TS_LEN];
-	StringCchPrintf(ts, TS_LEN, L"%d-%02d-%02d %02d:%02d:%02d.%03d - ", lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
+	StringCchPrintfW(ts, TS_LEN, L"%d-%02d-%02d %02d:%02d:%02d.%03d - ", lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
 	return ts;
 }
 
 void OpenLogFile() {
 	wchar_t lpszPath[PATH_LEN]{};
-	DWORD dwPathLength = GetModuleFileName(NULL, lpszPath, PATH_LEN);
+	DWORD dwPathLength = GetModuleFileNameW(NULL, lpszPath, PATH_LEN);
 	DWORD dwError = GetLastError();
 	if (ERROR_INSUFFICIENT_BUFFER == dwError) {
-		MessageBoxW(NULL, L"Path to logfile is too long! Working without logging.", L"WARNING", MB_OK | MB_ICONWARNING);
+		MessageBoxW(NULL, L"Path to logfile is too long! Working without logging.", (LPCWSTR)szTitle, MB_OK | MB_ICONWARNING);
 		return;
 	}
 	if (NULL == dwPathLength) {
-		MessageBoxW(NULL, L"Can't get module filename! Working without logging.", L"WARNING", MB_OK | MB_ICONWARNING);
+		MessageBoxW(NULL, L"Can't get module filename! Working without logging.", (LPCWSTR)szTitle, MB_OK | MB_ICONWARNING);
 		return;
 	}
 
@@ -52,18 +49,18 @@ void OpenLogFile() {
 #endif
 	logfile.open(log_path);
 	if (logfile.is_open()) {
-		diag_log(L"Starting logging.");
-		diag_log(L"logfile:", log_path);
+		diag_log(L"Start logging.");
+		diag_log(L"Logfile:", log_path);
 		diag_log(log_path, L"successfully opened.");
 	} else {
-		MessageBoxW(NULL, L"Can't open logfile! Working without logging.", L"WARNING", MB_OK | MB_ICONWARNING);
+		MessageBoxW(NULL, L"Can't open logfile! Working without logging.", (LPCWSTR)szTitle, MB_OK | MB_ICONWARNING);
 	}
 	return;
 }
 
 void CloseLogFile() {
 	if (logfile) {
-		diag_log(L"Ending logging.");
+		diag_log(L"End logging.");
 		logfile.close();
 	}
 }

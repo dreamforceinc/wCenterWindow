@@ -218,7 +218,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
 		SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
 
-		nid.cbSize = sizeof(NOTIFYICONDATA);
+		//nid.cbSize = sizeof(NOTIFYICONDATA);
+		nid.cbSize = NOTIFYICONDATA_V3_SIZE;
 		nid.hWnd = hWnd;
 		nid.uVersion = NOTIFYICON_VERSION;
 		nid.uCallbackMessage = WM_WCW;

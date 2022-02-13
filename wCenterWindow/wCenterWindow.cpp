@@ -50,20 +50,6 @@ INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 
 
-ATOM MyRegisterClass(HINSTANCE hInstance)
-{
-	WNDCLASSEX wcex = { 0 };
-	wcex.cbSize = sizeof(WNDCLASSEX);
-	wcex.lpfnWndProc = WndProc;
-	wcex.hInstance = hInstance;
-	wcex.hIcon = LoadIconW(hInstance, MAKEINTRESOURCE(IDI_TRAYICON));
-	wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-	wcex.lpszClassName = szClass;
-	wcex.hIconSm = wcex.hIcon;
-	hIcon = wcex.hIcon;
-	return RegisterClassExW(&wcex);
-}
-
 VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 {
 	diag_log(L"Entering MoveWindowToMonitorCenter(): hwnd =", hwnd, L"Title:", (LPWSTR)szBuffer);
@@ -111,6 +97,20 @@ VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 	diag_log(L"Quiting MoveWindowToMonitorCenter()");
 }
 
+
+ATOM MyRegisterClass(HINSTANCE hInstance)
+{
+	WNDCLASSEX wcex = { 0 };
+	wcex.cbSize = sizeof(WNDCLASSEX);
+	wcex.lpfnWndProc = WndProc;
+	wcex.hInstance = hInstance;
+	wcex.hIcon = LoadIconW(hInstance, MAKEINTRESOURCE(IDI_TRAYICON));
+	wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+	wcex.lpszClassName = szClass;
+	wcex.hIconSm = wcex.hIcon;
+	hIcon = wcex.hIcon;
+	return RegisterClassExW(&wcex);
+}
 
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
@@ -218,8 +218,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
 		SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
 
-		//nid.cbSize = sizeof(NOTIFYICONDATA);
-		nid.cbSize = NOTIFYICONDATA_V3_SIZE;
+		nid.cbSize = sizeof(NOTIFYICONDATA);
 		nid.hWnd = hWnd;
 		nid.uVersion = NOTIFYICON_VERSION;
 		nid.uCallbackMessage = WM_WCW;

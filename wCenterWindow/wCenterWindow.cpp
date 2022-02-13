@@ -32,11 +32,14 @@ BOOL				bKPressed = FALSE, bMPressed = FALSE, bShowIcon = TRUE, bWorkArea = TRUE
 BOOL				bLCTRL = FALSE, bLWIN = FALSE, bKEYV = FALSE;
 
 RECT				rcFW = { 0 };
-NOTIFYICONDATA		nid = { 0 };
+NOTIFYICONDATAW		nid = { 0 };
 LPKBDLLHOOKSTRUCT	pkhs;
 MENUITEMINFO		mii;
 
 LPVOID				szBuffer;
+
+// {2D7B7F30-4B5F-4380-9807-57D7A2E37F6C}
+static const GUID	guid = { 0x2d7b7f30, 0x4b5f, 0x4380, { 0x98, 0x7, 0x57, 0xd7, 0xa2, 0xe3, 0x7f, 0x6c } };
 
 // Forward declarations of functions included in this code module:
 VOID				HandlingTrayIcon();
@@ -218,15 +221,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
 		SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
 
-		nid.cbSize = sizeof(NOTIFYICONDATA);
+		//nid.cbSize = sizeof(NOTIFYICONDATAW);
+		nid.cbSize = sizeof(nid);
 		nid.hWnd = hWnd;
+		//nid.uVersion = NOTIFYICON_VERSION_4;
 		nid.uVersion = NOTIFYICON_VERSION;
 		nid.uCallbackMessage = WM_WCW;
 		nid.hIcon = hIcon;
 		nid.uID = IDI_TRAYICON;
 		nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-		nid.dwInfoFlags = NIIF_INFO;
-		StringCchCopyW(nid.szTip, _countof(nid.szTip), szTitle);
+		nid.dwInfoFlags = NIIF_NONE;
+		nid.dwState = NIS_HIDDEN;
+		nid.dwStateMask = NIS_HIDDEN;
+		//StringCchCopyW(nid.szTip, _countof(nid.szTip), szTitle);
+		StringCchCopyW(nid.szTip, ARRAYSIZE(nid.szTip), szTitle);
 
 		hMouseHook = SetWindowsHookExW(WH_MOUSE_LL, MouseHookProc, hInst, NULL);
 		if (!hMouseHook)

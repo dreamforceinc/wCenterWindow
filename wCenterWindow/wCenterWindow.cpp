@@ -363,6 +363,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 			{
 				diag_log(L"Opening 'Manual editing' dialog");
 				DialogBoxW(hInst, MAKEINTRESOURCE(IDD_MANUAL_EDITING), hWnd, (DLGPROC)DlgProc);
+				SetForegroundWindow(hFgWnd);
 			}
 			else hFgWnd = NULL;
 			bKEYV = FALSE;

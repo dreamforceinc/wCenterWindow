@@ -33,8 +33,8 @@ BOOL				bLCTRL = FALSE, bLWIN = FALSE, bKEYV = FALSE;
 
 RECT				rcFW = { 0 };
 NOTIFYICONDATAW		nid = { 0 };
-LPKBDLLHOOKSTRUCT	pkhs;
-MENUITEMINFO		mii;
+LPKBDLLHOOKSTRUCT	pkhs = { 0 };
+MENUITEMINFO		mii = { 0 };
 
 LPVOID				szBuffer;
 
@@ -57,17 +57,17 @@ VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 {
 	diag_log(L"Entering MoveWindowToMonitorCenter(): hwnd =", hwnd, L"Title:", (LPWSTR)szBuffer);
 
-	RECT fgwrc;
+	RECT fgwrc = { 0 };
 	GetWindowRect(hwnd, &fgwrc);
 	LONG nWidth = fgwrc.right - fgwrc.left;
 	LONG nHeight = fgwrc.bottom - fgwrc.top;
 
 	diag_log(L"Moving window from x =", fgwrc.left, L"y =", fgwrc.top);
 
-	MONITORINFO mi;
+	MONITORINFO mi = { 0 };
 	mi.cbSize = sizeof(MONITORINFO);
 	GetMonitorInfoW(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), &mi);
-	RECT area;
+	RECT area = { 0 };
 	if (bWorkArea)
 	{
 		area.bottom = mi.rcWork.bottom;
@@ -481,7 +481,7 @@ VOID ShowError(UINT uID)
 
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	INITCOMMONCONTROLSEX icex;
+	INITCOMMONCONTROLSEX icex = { 0 };
 	icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
 	icex.dwICC = ICC_LINK_CLASS;
 	InitCommonControlsEx(&icex);

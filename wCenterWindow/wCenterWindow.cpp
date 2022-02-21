@@ -394,7 +394,6 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 		SetDlgItemInt(hDlg, IDC_EDIT_HEIGHT, h, FALSE);
 		SetDlgItemTextW(hDlg, IDC_EDIT_TITLE, szWinTitle);
 		SetDlgItemTextW(hDlg, IDC_EDIT_CLASS, szWinClass);
-		SetForegroundWindow(hDlg);
 		UpdateWindow(hDlg);
 		break;
 	}

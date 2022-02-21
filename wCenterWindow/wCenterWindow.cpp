@@ -273,7 +273,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			if (idMenu == ID_POPUPMENU_AREA)
 			{
-				bWorkArea = ~bWorkArea;
+				bWorkArea = !bWorkArea;
 				bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
 				SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
 				diag_log(L"Changed 'Use workarea' option to", bWorkArea);
@@ -337,7 +337,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 		{
 			diag_log(L"Pressed LCTRL + LWIN + I");
 			bKPressed = TRUE;
-			bShowIcon = ~bShowIcon;
+			bShowIcon = !bShowIcon;
 			HandlingTrayIcon();
 			return TRUE;
 		}

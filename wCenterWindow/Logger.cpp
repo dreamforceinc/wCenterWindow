@@ -1,4 +1,4 @@
-// wCenterWindow, v2.3.2
+// wCenterWindow, v2.3.3
 // Logger.cpp
 //
 #include "framework.h"

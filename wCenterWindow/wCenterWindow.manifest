@@ -4,9 +4,9 @@
   <description>Centers windows by hotkey (C++)</description>
 
   <assemblyIdentity
-      version="2.3.2.0"
+      version="2.3.3.0"
       processorArchitecture="x86"
-      name="W0LF.wCenterWindow.c++"
+      name="W0LF.wCenterWindow.C++"
       type="win32">
   </assemblyIdentity>
 

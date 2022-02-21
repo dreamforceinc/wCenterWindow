@@ -1,4 +1,4 @@
-// wCenterWindow, v2.3.2
+// wCenterWindow, v2.3.3
 //
 // TODO: More verbose logs - partially done.
 // TODO: More verbose error messages 

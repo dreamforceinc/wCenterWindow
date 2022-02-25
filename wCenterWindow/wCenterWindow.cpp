@@ -203,7 +203,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				diag_log(L"Loading context menu failed!");
 				ShowError(IDS_ERR_MENU);
-				SendMessageW(hWnd, WM_CLOSE, NULL, NULL);
+				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			diag_log(L"Context menu successfully loaded");
 
@@ -212,7 +212,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				diag_log(L"Creating popup menu failed!");
 				ShowError(IDS_ERR_POPUP);
-				SendMessageW(hWnd, WM_CLOSE, NULL, NULL);
+				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			diag_log(L"Popup menu successfully created");
 
@@ -238,7 +238,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				diag_log(L"Creating mouse hook failed!");
 				ShowError(IDS_ERR_HOOK);
-				SendMessageW(hWnd, WM_CLOSE, NULL, NULL);
+				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			diag_log(L"Mouse hook was successfully set");
 
@@ -247,7 +247,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				diag_log(L"Creating keyboard hook failed!");
 				ShowError(IDS_ERR_HOOK);
-				SendMessageW(hWnd, WM_CLOSE, NULL, NULL);
+				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			diag_log(L"Keyboard hook was successfully set");
 
@@ -282,7 +282,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					DialogBoxW(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, (DLGPROC)About);
 					bKPressed = FALSE;
 				}
-				if (ID_POPUPMENU_EXIT == idMenu) SendMessageW(hWnd, WM_CLOSE, NULL, NULL);
+				if (ID_POPUPMENU_EXIT == idMenu) PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			break;
 		}

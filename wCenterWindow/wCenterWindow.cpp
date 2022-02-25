@@ -146,8 +146,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	int nArgs = 0;
 	LPWSTR* szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
 
-	diag_log(L"Arguments:", nArgs);
-	for (int i = 0; i < nArgs; i++)
+	diag_log(L"Arguments:", nArgs - 1);
+	for (int i = 1; i < nArgs; i++)
 	{
 		diag_log(L"Argument", i, L":", szArglist[i]);
 	}

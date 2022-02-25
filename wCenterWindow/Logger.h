@@ -1,4 +1,4 @@
-// wCenterWindow, v2.3.2
+// wCenterWindow
 // Logger.h
 //
 #pragma once
@@ -6,7 +6,6 @@
 
 extern std::wofstream logfile;
 std::wstring GetTimeStamp();
-std::wstring PrintTitle();
 
 template <typename T1>
 void diag_log(T1 arg1)

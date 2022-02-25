@@ -51,7 +51,7 @@ void OpenLogFile()
 	{
 		diag_log(L"Start logging");
 		diag_log(L"Logfile:", log_path);
-		diag_log(L"Log-file was successfully opened");
+		diag_log(L"Logfile was successfully opened");
 	}
 	else
 	{

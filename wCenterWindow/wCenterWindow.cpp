@@ -62,7 +62,7 @@ VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 	LONG nWidth = fgwrc.right - fgwrc.left;
 	LONG nHeight = fgwrc.bottom - fgwrc.top;
 
-	diag_log(L"Moving window from x =", fgwrc.left, L"y =", fgwrc.top);
+	diag_log(L"Moving window from x =", fgwrc.left, L", y =", fgwrc.top);
 
 	MONITORINFO mi = { 0 };
 	mi.cbSize = sizeof(MONITORINFO);
@@ -96,7 +96,7 @@ VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 	MoveWindow(hwnd, x, y, nWidth, nHeight, TRUE);
 	SendMessageW(hwnd, WM_EXITSIZEMOVE, NULL, NULL);
 
-	diag_log(L"Moving window to x =", x, L"y =", y);
+	diag_log(L"Moving window to x =", x, L", y =", y);
 	diag_log(L"Quiting MoveWindowToMonitorCenter()");
 }
 
@@ -118,12 +118,6 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
-	UNREFERENCED_PARAMETER(hPrevInstance);
-	UNREFERENCED_PARAMETER(lpCmdLine);
-
-	OpenLogFile();
-	diag_log(L"Entering WinMain()");
-
 	hInst = hInstance;
 
 	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, _countof(szTitle));
@@ -134,6 +128,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		ShowError(IDS_RUNNING);
 		return FALSE;
 	}
+
+	OpenLogFile();
+	diag_log(L"Entering WinMain()");
 
 	MyRegisterClass(hInstance);
 	hWnd = CreateWindowExW(0, szClass, szTitle, 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
@@ -198,6 +195,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		case WM_CREATE:
 		{
+			diag_log(L"Recived WM_CREATE message");
 			hMenu = LoadMenuW(hInst, MAKEINTRESOURCE(IDR_MENU));
 			if (!hMenu)
 			{
@@ -259,17 +257,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			if (IDI_TRAYICON == wParam && (WM_RBUTTONDOWN == lParam || WM_LBUTTONDOWN == lParam))
 			{
+				diag_log(L"Entering menu handler");
 				SetForegroundWindow(hWnd);
 				POINT pt;
 				GetCursorPos(&pt);
 				int idMenu = TrackPopupMenu(hPopup, TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, NULL);
 				if (ID_POPUPMENU_ICON == idMenu)
 				{
+					diag_log(L"Pressed 'Hide icon' menuitem");
 					bShowIcon = FALSE;
 					HandlingTrayIcon();
 				}
 				if (ID_POPUPMENU_AREA == idMenu)
 				{
+					diag_log(L"Pressed 'Use workarea' menuitem");
 					bWorkArea = !bWorkArea;
 					bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
 					SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
@@ -277,12 +278,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				if (ID_POPUPMENU_ABOUT == idMenu && !bKPressed)
 				{
+					diag_log(L"Pressed 'About' menuitem");
 					bKPressed = TRUE;
-					diag_log(L"Opening 'About' dialog");
 					DialogBoxW(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, (DLGPROC)About);
 					bKPressed = FALSE;
 				}
-				if (ID_POPUPMENU_EXIT == idMenu) PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
+				if (ID_POPUPMENU_EXIT == idMenu)
+				{
+					diag_log(L"Pressed 'Exit' menuitem");
+					PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
+				}
+				diag_log(L"Quiting menu handler");
 			}
 			break;
 		}
@@ -297,6 +303,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case WM_DESTROY:
 		{
+			diag_log(L"Recived WM_DESTROY message");
 			PostQuitMessage(0);
 			break;
 		}
@@ -385,6 +392,7 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 	{
 		case WM_INITDIALOG:
 		{
+			diag_log(L"Initializing 'Manual editing' dialog");
 			SetWindowTextW(hDlg, szTitle);
 			GetWindowTextW(hFgWnd, szWinTitle, _countof(szWinTitle));
 			GetClassNameW(hFgWnd, szWinClass, _countof(szWinClass));
@@ -408,6 +416,7 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 			{
 				case IDC_BUTTON_SET:
 				{
+					diag_log(L"Pressed 'Set' button");
 					x = GetDlgItemInt(hDlg, IDC_EDIT_X, NULL, TRUE);
 					y = GetDlgItemInt(hDlg, IDC_EDIT_Y, NULL, TRUE);
 					w = GetDlgItemInt(hDlg, IDC_EDIT_WIDTH, NULL, FALSE);
@@ -415,14 +424,15 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 					SendMessageW(hFgWnd, WM_ENTERSIZEMOVE, NULL, NULL);
 					MoveWindow(hFgWnd, x, y, w, h, TRUE);
 					SendMessageW(hFgWnd, WM_EXITSIZEMOVE, NULL, NULL);
+					diag_log(L"Window", hFgWnd, L"was moved to x = ", x, L", y = ", y);
 					return TRUE;
 					break;
 				}
 				case IDCANCEL:
 				case IDC_BUTTON_CLOSE:
 				{
-					EndDialog(hDlg, LOWORD(wParam));
 					diag_log(L"Closing 'Manual editing' dialog");
+					EndDialog(hDlg, LOWORD(wParam));
 					break;
 				}
 			}
@@ -496,6 +506,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		case WM_INITDIALOG:
 		{
+			diag_log(L"Initializing 'About' dialog");
 			SetDlgItemTextW(hDlg, IDC_ABOUTHELP, szAbout);
 			return (INT_PTR)TRUE;
 			break;

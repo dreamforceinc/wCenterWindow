@@ -1,7 +1,9 @@
 // wCenterWindow
+// wCenterWindow.cpp
 //
 #include "framework.h"
 #include "wCenterWindow.h"
+#include "Version.h"
 
 #define KEY_I 0x49
 #define KEY_C 0x43
@@ -125,6 +127,11 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	wcex.lpszClassName = szClass;
 	wcex.hIconSm = wcex.hIcon;
 	hIcon = wcex.hIcon;
+	if (!RegisterClassExW(&wcex))
+	{
+		ShowError(IDS_ERR_CLASS);
+		return FALSE;
+	}
 
 	hWnd = CreateWindowExW(0, szClass, szTitle, 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
 	if (!hWnd)

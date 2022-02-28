@@ -47,7 +47,7 @@ LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	KeyboardHookProc(int, WPARAM, LPARAM);
 LRESULT CALLBACK	MouseHookProc(int, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
-std::string			ConvertWideToUtf8(const std::wstring&, int);
+std::string			ConvertWideToUtf8(const std::wstring&);
 
 
 
@@ -145,7 +145,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	diag_log("Arguments: ", nArgs - 1);
 	for (int i = 1; i < nArgs; i++)
 	{
-		arg = ConvertWideToUtf8(szArglist[i], sizeof(szArglist[i]));
+		arg = ConvertWideToUtf8(szArglist[i]);
 		diag_log("Argument #", i, ": ", arg);
 	}
 
@@ -446,7 +446,7 @@ bool IsWindowApprooved(HWND hFW)
 	if (hFW)
 	{
 		GetClassNameW(hFW, szWinClass, _countof(szWinClass));
-		if (GetWindowTextW(hFW, (LPWSTR)szBuffer, BUF_LEN - sizeof(WCHAR))) diag_log("Title: '", ConvertWideToUtf8((LPWSTR)szBuffer, 0), "'");
+		if (GetWindowTextW(hFW, (LPWSTR)szBuffer, BUF_LEN - sizeof(WCHAR))) diag_log("Title: '", ConvertWideToUtf8((LPWSTR)szBuffer), "'");
 		if (IsIconic(hFW)) diag_log("Window is iconic");
 		if (IsZoomed(hFW)) diag_log("Window is maximized");
 		if ((wcscmp(szWinClass, szWinCore) != 0) &&
@@ -542,7 +542,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	return (INT_PTR)FALSE;
 }
 
-std::string ConvertWideToUtf8(const std::wstring& wstr, int len)
+std::string ConvertWideToUtf8(const std::wstring& wstr)
 {
 	int count = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), NULL, 0, NULL, NULL);
 	std::string str(count, 0);

@@ -99,20 +99,6 @@ VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 }
 
 
-ATOM MyRegisterClass(HINSTANCE hInstance)
-{
-	WNDCLASSEX wcex = { 0 };
-	wcex.cbSize = sizeof(WNDCLASSEX);
-	wcex.lpfnWndProc = WndProc;
-	wcex.hInstance = hInstance;
-	wcex.hIcon = LoadIconW(hInstance, MAKEINTRESOURCE(IDI_TRAYICON));
-	wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-	wcex.lpszClassName = szClass;
-	wcex.hIconSm = wcex.hIcon;
-	hIcon = wcex.hIcon;
-	return RegisterClassExW(&wcex);
-}
-
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
@@ -130,7 +116,16 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	OpenLogFile();
 	diag_log("Entering WinMain()");
 
-	MyRegisterClass(hInstance);
+	WNDCLASSEX wcex = { 0 };
+	wcex.cbSize = sizeof(WNDCLASSEX);
+	wcex.lpfnWndProc = WndProc;
+	wcex.hInstance = hInstance;
+	wcex.hIcon = LoadIconW(hInstance, MAKEINTRESOURCE(IDI_TRAYICON));
+	wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+	wcex.lpszClassName = szClass;
+	wcex.hIconSm = wcex.hIcon;
+	hIcon = wcex.hIcon;
+
 	hWnd = CreateWindowExW(0, szClass, szTitle, 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
 	if (!hWnd)
 	{

@@ -2,14 +2,7 @@
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3">
 
   <description>Centers windows by hotkey (C++)</description>
-
-  <assemblyIdentity
-      version="2.3.3.0"
-      processorArchitecture="x86"
-      name="W0LF.wCenterWindow.c++"
-      type="win32">
-  </assemblyIdentity>
-
+  
   <dependency>
     <dependentAssembly>
       <assemblyIdentity

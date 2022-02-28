@@ -7,7 +7,7 @@
 #define KEY_C 0x43
 #define KEY_V 0x56
 
-#define BUF_LEN 4096
+#define BUF_LEN 1024
 #define MAX_LOADSTRING 50
 #define WM_WCW	0x8F00
 

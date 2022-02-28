@@ -6,16 +6,16 @@
 #define TS_LEN 30
 #define PATH_LEN 1024
 
-std::wofstream logfile;
+std::ofstream logfile;
 extern WCHAR szTitle[];
 extern LPVOID szBuffer;
 
-std::wstring GetTimeStamp()
+std::string GetTimeStamp()
 {
 	SYSTEMTIME lt;
 	GetLocalTime(&lt);
-	WCHAR ts[TS_LEN];
-	StringCchPrintfW(ts, TS_LEN, L"%d-%02d-%02d %02d:%02d:%02d.%03d - ", lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
+	CHAR ts[TS_LEN];
+	StringCchPrintfA(ts, TS_LEN, "%d-%02d-%02d %02d:%02d:%02d.%03d - ", lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
 	return ts;
 }
 
@@ -49,9 +49,10 @@ void OpenLogFile()
 	logfile.open(log_path);
 	if (logfile.is_open())
 	{
-		diag_log(L"Start logging");
-		diag_log(L"Logfile:", log_path);
-		diag_log(L"Logfile was successfully opened");
+		logfile << std::boolalpha;
+		diag_log("Start logging");
+		diag_log("Logfile: ", log_path);
+		diag_log("Logfile was successfully opened");
 	}
 	else
 	{
@@ -64,7 +65,7 @@ void CloseLogFile()
 {
 	if (logfile)
 	{
-		diag_log(L"End logging");
+		diag_log("End logging");
 		logfile.close();
 	}
 }

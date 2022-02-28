@@ -4,7 +4,6 @@
 #include "framework.h"
 
 #define TS_LEN 30
-#define PATH_LEN 1024
 
 std::ofstream logfile;
 extern WCHAR szTitle[];
@@ -21,8 +20,8 @@ std::string GetTimeStamp()
 
 void OpenLogFile()
 {
-	WCHAR lpszPath[PATH_LEN] = { 0 };
-	DWORD dwPathLength = GetModuleFileNameW(NULL, lpszPath, PATH_LEN);
+	WCHAR lpszPath[MAX_PATH + 1] = { 0 };
+	DWORD dwPathLength = GetModuleFileNameW(NULL, lpszPath, MAX_PATH);
 	DWORD dwError = GetLastError();
 	if (ERROR_INSUFFICIENT_BUFFER == dwError)
 	{

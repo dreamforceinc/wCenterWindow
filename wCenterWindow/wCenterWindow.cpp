@@ -3,7 +3,6 @@
 //
 #include "framework.h"
 #include "wCenterWindow.h"
-#include "Version.h"
 
 #define KEY_I 0x49
 #define KEY_C 0x43

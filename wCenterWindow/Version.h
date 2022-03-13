@@ -2,6 +2,12 @@
 // Version.h
 //
 #pragma once
-#define NUM_VERSION 2,3,3
-#define STR_VERSION "2.3.3"
-#define PRODUCT_NAME "wCenterWindow v2.3.3 (C++)"
+#include "revision.h"
+
+#define V_MAJOR				2
+#define V_MINOR				3
+#define V_BUILD				3
+#define PRODUCT_NAME        "wCenterWindow"
+#define PRODUCT_AUTHORS     "W0LF aka 'dreamforce'"
+#define PRODUCT_YEAR_START  2020
+#define PRODUCT_DESCRIPTION "Centers windows by hotkey (C++)"

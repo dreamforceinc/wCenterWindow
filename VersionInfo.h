@@ -1,8 +1,7 @@
 // wCenterWindow
-// Version.h
+// version.h
 //
 #pragma once
-#include "revision.h"
 
 #define V_MAJOR				2
 #define V_MINOR				3

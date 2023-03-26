@@ -2,6 +2,10 @@
 // Microsoft Visual C++ generated include file.
 // Used by wCenterWindow.rc
 //
+#define V_MAJOR                         2
+#define V_MINOR                         3
+#define V_PATCH                         4
+#define GIT_COUNT                       72
 #define IDS_CLASSNAME                   102
 #define IDS_APP_TITLE                   103
 #define IDD_ABOUTBOX                    104
@@ -33,6 +37,8 @@
 #define IDC_BUTTON_CLOSE                1007
 #define IDC_ABOUTHELP                   1008
 #define IDC_DONATIONLINK                1009
+#define PRODUCT_YEAR_START              2020
+#define V_SECS                          52245
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

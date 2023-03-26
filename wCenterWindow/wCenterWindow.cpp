@@ -16,7 +16,7 @@
 HINSTANCE			hInst;									// Instance
 WCHAR				szTitle[MAX_LOADSTRING];				// Window's title
 WCHAR				szClass[MAX_LOADSTRING];				// Window's class
-WCHAR				szAbout[MAX_LOADSTRING * 12];			// Description text
+WCHAR				szAboutHelp[MAX_LOADSTRING * 12];			// Description text
 WCHAR				szWinTitle[256];
 WCHAR				szWinClass[256];
 WCHAR				szWinCore[] = L"Windows.UI.Core.CoreWindow";
@@ -194,125 +194,125 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
-		case WM_CREATE:
+	case WM_CREATE:
+	{
+		diag_log("Recived WM_CREATE message");
+		hMenu = LoadMenuW(hInst, MAKEINTRESOURCE(IDR_MENU));
+		if (!hMenu)
 		{
-			diag_log("Recived WM_CREATE message");
-			hMenu = LoadMenuW(hInst, MAKEINTRESOURCE(IDR_MENU));
-			if (!hMenu)
-			{
-				diag_log("Loading context menu failed!");
-				ShowError(IDS_ERR_MENU);
-				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
-			}
-			diag_log("Context menu successfully loaded");
+			diag_log("Loading context menu failed!");
+			ShowError(IDS_ERR_MENU);
+			PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
+		}
+		diag_log("Context menu successfully loaded");
 
-			hPopup = GetSubMenu(hMenu, 0);
-			if (!hPopup)
-			{
-				diag_log("Creating popup menu failed!");
-				ShowError(IDS_ERR_POPUP);
-				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
-			}
-			diag_log("Popup menu successfully created");
+		hPopup = GetSubMenu(hMenu, 0);
+		if (!hPopup)
+		{
+			diag_log("Creating popup menu failed!");
+			ShowError(IDS_ERR_POPUP);
+			PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
+		}
+		diag_log("Popup menu successfully created");
 
-			mii.cbSize = sizeof(MENUITEMINFO);
-			mii.fMask = MIIM_STATE;
-			bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
-			SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
+		mii.cbSize = sizeof(MENUITEMINFO);
+		mii.fMask = MIIM_STATE;
+		bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
+		SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
 
-			nid.cbSize = sizeof(NOTIFYICONDATAW);
-			nid.hWnd = hWnd;
-			nid.uVersion = NOTIFYICON_VERSION;
-			nid.uCallbackMessage = WM_WCW;
-			nid.hIcon = hIcon;
-			nid.uID = IDI_TRAYICON;
-			nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-			nid.dwInfoFlags = NIIF_NONE;
-			nid.dwState = NIS_HIDDEN;
-			nid.dwStateMask = NIS_HIDDEN;
-			StringCchCopyW(nid.szTip, _countof(nid.szTip), szTitle);
+		nid.cbSize = sizeof(NOTIFYICONDATAW);
+		nid.hWnd = hWnd;
+		nid.uVersion = NOTIFYICON_VERSION;
+		nid.uCallbackMessage = WM_WCW;
+		nid.hIcon = hIcon;
+		nid.uID = IDI_TRAYICON;
+		nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+		nid.dwInfoFlags = NIIF_NONE;
+		nid.dwState = NIS_HIDDEN;
+		nid.dwStateMask = NIS_HIDDEN;
+		StringCchCopyW(nid.szTip, _countof(nid.szTip), szTitle);
 
 #ifndef _DEBUG
-			hMouseHook = SetWindowsHookExW(WH_MOUSE_LL, MouseHookProc, hInst, NULL);
-			if (!hMouseHook)
-			{
-				diag_log("Creating mouse hook failed!");
-				ShowError(IDS_ERR_HOOK);
-				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
-			}
-			diag_log("Mouse hook was successfully set");
+		hMouseHook = SetWindowsHookExW(WH_MOUSE_LL, MouseHookProc, hInst, NULL);
+		if (!hMouseHook)
+		{
+			diag_log("Creating mouse hook failed!");
+			ShowError(IDS_ERR_HOOK);
+			PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
+		}
+		diag_log("Mouse hook was successfully set");
 #endif // !_DEBUG
 
-			hKbdHook = SetWindowsHookExW(WH_KEYBOARD_LL, KeyboardHookProc, hInst, NULL);
-			if (!hKbdHook)
+		hKbdHook = SetWindowsHookExW(WH_KEYBOARD_LL, KeyboardHookProc, hInst, NULL);
+		if (!hKbdHook)
+		{
+			diag_log("Creating keyboard hook failed!");
+			ShowError(IDS_ERR_HOOK);
+			PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
+		}
+		diag_log("Keyboard hook was successfully set");
+
+		LoadStringW(hInst, IDS_ABOUT, szAboutHelp, _countof(szAboutHelp));
+		break;
+	}
+
+	case WM_WCW:
+	{
+		if (IDI_TRAYICON == wParam && (WM_RBUTTONDOWN == lParam || WM_LBUTTONDOWN == lParam))
+		{
+			diag_log("Entering menu handler");
+			SetForegroundWindow(hWnd);
+			POINT pt;
+			GetCursorPos(&pt);
+			int idMenu = TrackPopupMenu(hPopup, TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, NULL);
+			if (ID_POPUPMENU_ICON == idMenu)
 			{
-				diag_log("Creating keyboard hook failed!");
-				ShowError(IDS_ERR_HOOK);
+				diag_log("Pressed 'Hide icon' menuitem");
+				bShowIcon = FALSE;
+				HandlingTrayIcon();
+			}
+			if (ID_POPUPMENU_AREA == idMenu)
+			{
+				diag_log("Pressed 'Use workarea' menuitem");
+				bWorkArea = !bWorkArea;
+				bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
+				SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
+				diag_log("Changed 'Use workarea' option to ", bWorkArea);
+			}
+			if (ID_POPUPMENU_ABOUT == idMenu && !bKPressed)
+			{
+				diag_log("Pressed 'About' menuitem");
+				bKPressed = TRUE;
+				DialogBoxW(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, (DLGPROC)About);
+				bKPressed = FALSE;
+			}
+			if (ID_POPUPMENU_EXIT == idMenu)
+			{
+				diag_log("Pressed 'Exit' menuitem");
 				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
-			diag_log("Keyboard hook was successfully set");
-
-			LoadStringW(hInst, IDS_ABOUT, szAbout, _countof(szAbout));
-			break;
+			diag_log("Quiting menu handler");
 		}
+		break;
+	}
 
-		case WM_WCW:
-		{
-			if (IDI_TRAYICON == wParam && (WM_RBUTTONDOWN == lParam || WM_LBUTTONDOWN == lParam))
-			{
-				diag_log("Entering menu handler");
-				SetForegroundWindow(hWnd);
-				POINT pt;
-				GetCursorPos(&pt);
-				int idMenu = TrackPopupMenu(hPopup, TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, NULL);
-				if (ID_POPUPMENU_ICON == idMenu)
-				{
-					diag_log("Pressed 'Hide icon' menuitem");
-					bShowIcon = FALSE;
-					HandlingTrayIcon();
-				}
-				if (ID_POPUPMENU_AREA == idMenu)
-				{
-					diag_log("Pressed 'Use workarea' menuitem");
-					bWorkArea = !bWorkArea;
-					bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
-					SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
-					diag_log("Changed 'Use workarea' option to ", bWorkArea);
-				}
-				if (ID_POPUPMENU_ABOUT == idMenu && !bKPressed)
-				{
-					diag_log("Pressed 'About' menuitem");
-					bKPressed = TRUE;
-					DialogBoxW(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, (DLGPROC)About);
-					bKPressed = FALSE;
-				}
-				if (ID_POPUPMENU_EXIT == idMenu)
-				{
-					diag_log("Pressed 'Exit' menuitem");
-					PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
-				}
-				diag_log("Quiting menu handler");
-			}
-			break;
-		}
+	case WM_QUERYENDSESSION:
+	{
+		diag_log("Recieved WM_QUERYENDSESSION message, lParam = ", lParam);
+		CloseLogFile();
+		return TRUE;
+		break;
+	}
 
-		case WM_QUERYENDSESSION:
-		{
-			diag_log("Recieved WM_QUERYENDSESSION message, lParam = ", lParam);
-			CloseLogFile();
-			return TRUE;
-			break;
-		}
+	case WM_DESTROY:
+	{
+		diag_log("Recived WM_DESTROY message");
+		PostQuitMessage(0);
+		break;
+	}
 
-		case WM_DESTROY:
-		{
-			diag_log("Recived WM_DESTROY message");
-			PostQuitMessage(0);
-			break;
-		}
-
-		default:
-			return DefWindowProcW(hWnd, message, wParam, lParam);
+	default:
+		return DefWindowProcW(hWnd, message, wParam, lParam);
 	}
 	return 0;
 }
@@ -390,52 +390,52 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 	int x, y, w, h;
 	switch (dlgmsg)
 	{
-		case WM_INITDIALOG:
+	case WM_INITDIALOG:
+	{
+		diag_log("Initializing 'Manual editing' dialog");
+		SetWindowTextW(hDlg, szTitle);
+		GetWindowTextW(hFgWnd, szWinTitle, _countof(szWinTitle));
+		GetClassNameW(hFgWnd, szWinClass, _countof(szWinClass));
+		GetWindowRect(hFgWnd, &rcFW);
+		x = rcFW.left;
+		y = rcFW.top;
+		w = rcFW.right - rcFW.left;
+		h = rcFW.bottom - rcFW.top;
+		SetDlgItemInt(hDlg, IDC_EDIT_X, x, TRUE);
+		SetDlgItemInt(hDlg, IDC_EDIT_Y, y, TRUE);
+		SetDlgItemInt(hDlg, IDC_EDIT_WIDTH, w, FALSE);
+		SetDlgItemInt(hDlg, IDC_EDIT_HEIGHT, h, FALSE);
+		SetDlgItemTextW(hDlg, IDC_EDIT_TITLE, szWinTitle);
+		SetDlgItemTextW(hDlg, IDC_EDIT_CLASS, szWinClass);
+		UpdateWindow(hDlg);
+		break;
+	}
+
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
 		{
-			diag_log("Initializing 'Manual editing' dialog");
-			SetWindowTextW(hDlg, szTitle);
-			GetWindowTextW(hFgWnd, szWinTitle, _countof(szWinTitle));
-			GetClassNameW(hFgWnd, szWinClass, _countof(szWinClass));
-			GetWindowRect(hFgWnd, &rcFW);
-			x = rcFW.left;
-			y = rcFW.top;
-			w = rcFW.right - rcFW.left;
-			h = rcFW.bottom - rcFW.top;
-			SetDlgItemInt(hDlg, IDC_EDIT_X, x, TRUE);
-			SetDlgItemInt(hDlg, IDC_EDIT_Y, y, TRUE);
-			SetDlgItemInt(hDlg, IDC_EDIT_WIDTH, w, FALSE);
-			SetDlgItemInt(hDlg, IDC_EDIT_HEIGHT, h, FALSE);
-			SetDlgItemTextW(hDlg, IDC_EDIT_TITLE, szWinTitle);
-			SetDlgItemTextW(hDlg, IDC_EDIT_CLASS, szWinClass);
-			UpdateWindow(hDlg);
+		case IDC_BUTTON_SET:
+		{
+			diag_log("Pressed 'Set' button");
+			x = GetDlgItemInt(hDlg, IDC_EDIT_X, NULL, TRUE);
+			y = GetDlgItemInt(hDlg, IDC_EDIT_Y, NULL, TRUE);
+			w = GetDlgItemInt(hDlg, IDC_EDIT_WIDTH, NULL, FALSE);
+			h = GetDlgItemInt(hDlg, IDC_EDIT_HEIGHT, NULL, FALSE);
+			SendMessageW(hFgWnd, WM_ENTERSIZEMOVE, NULL, NULL);
+			MoveWindow(hFgWnd, x, y, w, h, TRUE);
+			SendMessageW(hFgWnd, WM_EXITSIZEMOVE, NULL, NULL);
+			diag_log("Window with handle 0x", hFgWnd, " was moved to x = ", x, ", y = ", y);
+			return TRUE;
 			break;
 		}
-
-		case WM_COMMAND:
-			switch (LOWORD(wParam))
-			{
-				case IDC_BUTTON_SET:
-				{
-					diag_log("Pressed 'Set' button");
-					x = GetDlgItemInt(hDlg, IDC_EDIT_X, NULL, TRUE);
-					y = GetDlgItemInt(hDlg, IDC_EDIT_Y, NULL, TRUE);
-					w = GetDlgItemInt(hDlg, IDC_EDIT_WIDTH, NULL, FALSE);
-					h = GetDlgItemInt(hDlg, IDC_EDIT_HEIGHT, NULL, FALSE);
-					SendMessageW(hFgWnd, WM_ENTERSIZEMOVE, NULL, NULL);
-					MoveWindow(hFgWnd, x, y, w, h, TRUE);
-					SendMessageW(hFgWnd, WM_EXITSIZEMOVE, NULL, NULL);
-					diag_log("Window with handle 0x", hFgWnd, " was moved to x = ", x, ", y = ", y);
-					return TRUE;
-					break;
-				}
-				case IDCANCEL:
-				case IDC_BUTTON_CLOSE:
-				{
-					diag_log("Closing 'Manual editing' dialog");
-					EndDialog(hDlg, LOWORD(wParam));
-					break;
-				}
-			}
+		case IDCANCEL:
+		case IDC_BUTTON_CLOSE:
+		{
+			diag_log("Closing 'Manual editing' dialog");
+			EndDialog(hDlg, LOWORD(wParam));
+			break;
+		}
+		}
 	}
 	return FALSE;
 }
@@ -507,38 +507,47 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 	switch (message)
 	{
-		case WM_INITDIALOG:
+	case WM_INITDIALOG:
+	{
+		diag_log("Initializing 'About' dialog");
+		WCHAR szAboutProgName[MAX_LOADSTRING];
+		WCHAR szAboutCopyright[MAX_LOADSTRING];
+		WCHAR szAboutBuildTime[MAX_LOADSTRING];
+		MultiByteToWideChar(1251, 0, PRODUCT_NAME_FULL, _countof(PRODUCT_NAME_FULL), szAboutProgName, MAX_LOADSTRING);
+		MultiByteToWideChar(1251, 0, PRODUCT_COPYRIGHT, _countof(PRODUCT_COPYRIGHT), szAboutCopyright, MAX_LOADSTRING);
+		MultiByteToWideChar(1251, 0, BUILD_DATETIME, _countof(BUILD_DATETIME), szAboutBuildTime, MAX_LOADSTRING);
+		SetDlgItemTextW(hDlg, IDC_ABOUT_PROGNAME, szAboutProgName);
+		SetDlgItemTextW(hDlg, IDC_ABOUT_COPYRIGHT, szAboutCopyright);
+		SetDlgItemTextW(hDlg, IDC_ABOUT_BUILDTIME, szAboutBuildTime);
+		SetDlgItemTextW(hDlg, IDC_ABOUTHELP, szAboutHelp);
+		return (INT_PTR)TRUE;
+		break;
+	}
+
+	case WM_NOTIFY:
+	{
+		LPNMHDR pNMHdr = (LPNMHDR)lParam;
+		if ((NM_CLICK == pNMHdr->code || NM_RETURN == pNMHdr->code) && IDC_DONATIONLINK == pNMHdr->idFrom)
 		{
-			diag_log("Initializing 'About' dialog");
-			SetDlgItemTextW(hDlg, IDC_ABOUTHELP, szAbout);
+			PNMLINK pNMLink = (PNMLINK)pNMHdr;
+			LITEM item = pNMLink->item;
+			ShellExecuteW(NULL, L"open", item.szUrl, NULL, NULL, SW_SHOW);
+			diag_log("Pressed donation link");
 			return (INT_PTR)TRUE;
-			break;
 		}
+		break;
+	}
 
-		case WM_NOTIFY:
+	case WM_COMMAND:
+	{
+		if (IDOK == LOWORD(wParam) || IDCANCEL == LOWORD(wParam))
 		{
-			LPNMHDR pNMHdr = (LPNMHDR)lParam;
-			if ((NM_CLICK == pNMHdr->code || NM_RETURN == pNMHdr->code) && IDC_DONATIONLINK == pNMHdr->idFrom)
-			{
-				PNMLINK pNMLink = (PNMLINK)pNMHdr;
-				LITEM item = pNMLink->item;
-				ShellExecuteW(NULL, L"open", item.szUrl, NULL, NULL, SW_SHOW);
-				diag_log("Pressed donation link");
-				return (INT_PTR)TRUE;
-			}
-			break;
+			EndDialog(hDlg, LOWORD(wParam));
+			diag_log("Closing 'About' dialog");
+			return (INT_PTR)TRUE;
 		}
-
-		case WM_COMMAND:
-		{
-			if (IDOK == LOWORD(wParam) || IDCANCEL == LOWORD(wParam))
-			{
-				EndDialog(hDlg, LOWORD(wParam));
-				diag_log("Closing 'About' dialog");
-				return (INT_PTR)TRUE;
-			}
-			break;
-		}
+		break;
+	}
 	}
 	return (INT_PTR)FALSE;
 }

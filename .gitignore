@@ -438,3 +438,4 @@ lightgbm.Rcheck/
 *.gv
 *.gv.*
 /VersionInfo.h
+/wCenterWindow/VersionInfo.h

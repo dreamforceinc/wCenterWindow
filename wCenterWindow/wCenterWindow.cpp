@@ -16,7 +16,6 @@
 HINSTANCE			hInst;									// Instance
 WCHAR				szTitle[MAX_LOADSTRING];				// Window's title
 WCHAR				szClass[MAX_LOADSTRING];				// Window's class
-WCHAR				szAboutHelp[MAX_LOADSTRING * 12];			// Description text
 WCHAR				szWinTitle[256];
 WCHAR				szWinClass[256];
 WCHAR				szWinCore[] = L"Windows.UI.Core.CoreWindow";
@@ -251,8 +250,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 		}
 		diag_log("Keyboard hook was successfully set");
-
-		LoadStringW(hInst, IDS_ABOUT, szAboutHelp, _countof(szAboutHelp));
 		break;
 	}
 
@@ -510,12 +507,15 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_INITDIALOG:
 	{
 		diag_log("Initializing 'About' dialog");
+
 		WCHAR szAboutProgName[MAX_LOADSTRING];
 		WCHAR szAboutCopyright[MAX_LOADSTRING];
 		WCHAR szAboutBuildTime[MAX_LOADSTRING];
+		WCHAR szAboutHelp[MAX_LOADSTRING * 12];
 		MultiByteToWideChar(1251, 0, PRODUCT_NAME_FULL, _countof(PRODUCT_NAME_FULL), szAboutProgName, MAX_LOADSTRING);
 		MultiByteToWideChar(1251, 0, PRODUCT_COPYRIGHT, _countof(PRODUCT_COPYRIGHT), szAboutCopyright, MAX_LOADSTRING);
 		MultiByteToWideChar(1251, 0, BUILD_DATETIME, _countof(BUILD_DATETIME), szAboutBuildTime, MAX_LOADSTRING);
+		LoadStringW(hInst, IDS_ABOUT, szAboutHelp, _countof(szAboutHelp));
 		SetDlgItemTextW(hDlg, IDC_ABOUT_PROGNAME, szAboutProgName);
 		SetDlgItemTextW(hDlg, IDC_ABOUT_COPYRIGHT, szAboutCopyright);
 		SetDlgItemTextW(hDlg, IDC_ABOUT_BUILDTIME, szAboutBuildTime);

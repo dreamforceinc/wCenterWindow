@@ -58,7 +58,7 @@ SET VS=%VerMajor%.%VerMinor%.%VerPatch%
 SET VNF=%VerMajor%,%VerMinor%,%VerPatch%,%GIT_COUNT%
 SET VN=%VerMajor%,%VerMinor%,%VerPatch%
 
-SET PNF=%PN% v%VS% (C++)
+SET PNF=%PN% v%VSF% (C++)
 SET PCF=Copyright (C) %PYS%-%CURRENT_YEAR% by %PA%
 
 SET INT_NAME=%PN%C++

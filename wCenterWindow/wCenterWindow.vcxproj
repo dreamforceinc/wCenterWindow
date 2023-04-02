@@ -112,8 +112,7 @@
       </ManifestFromManagedAssembly>
     </Manifest>
     <PreBuildEvent>
-      <Command>start "" /wait "$(SolutionDir)Update_version.bat" &amp;&amp; move /y "$(SolutionDir)VersionInfo.h" "$(ProjectDir)"
-</Command>
+      <Command>"$(SolutionDir)pre-build.cmd" "$(SolutionDir)" "$(ProjectDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -138,8 +137,7 @@
       <AdditionalManifestFiles>%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
     <PreBuildEvent>
-      <Command>start "" /wait "$(SolutionDir)Update_version.bat" &amp;&amp; move /y "$(SolutionDir)VersionInfo.h" "$(ProjectDir)"
-</Command>
+      <Command>powershell -ExecutionPolicy RemoteSigned -File "$(SolutionDir)Update_Version.ps1" &amp;&amp; move /y "$(SolutionDir)VersionInfo.h" "$(ProjectDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -159,7 +157,7 @@
       <AdditionalManifestFiles>%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
     <PreBuildEvent>
-      <Command>"$(SolutionDir)Update_version.bat"</Command>
+      <Command>powershell -File "$(SolutionDir)Update_Version.ps1" move /y "$(SolutionDir)VersionInfo.h" "$(ProjectDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -184,7 +182,7 @@
       <AdditionalManifestFiles>%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
     <PreBuildEvent>
-      <Command>"$(SolutionDir)Update_version.bat"</Command>
+      <Command>powershell -File "$(SolutionDir)Update_Version.ps1" move /y "$(SolutionDir)VersionInfo.h" "$(ProjectDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -19,15 +19,15 @@ WCHAR				szTitle[MAX_LOADSTRING];				// Window's title
 WCHAR				szClass[MAX_LOADSTRING];				// Window's class
 WCHAR				szWinTitle[256];
 WCHAR				szWinClass[256];
-WCHAR				szWinCore[] = L"Windows.UI.Core.CoreWindow";
-WCHAR				szWorkerW[] = L"WorkerW";
+//WCHAR				szWinCore[] = L"Windows.UI.Core.CoreWindow";
+//WCHAR				szWorkerW[] = L"WorkerW";
 HANDLE				hHeap = NULL;
 HHOOK				hMouseHook = NULL, hKbdHook = NULL;		// Hook's handles
 HICON				hIcon = NULL;
 HMENU				hMenu = NULL, hPopup = NULL;
-HWND				hWnd = NULL, hFgWnd = NULL, hTaskBar = NULL, hDesktop = NULL, hProgman = NULL;
-bool				bKPressed = FALSE, bMPressed = FALSE, bShowIcon = TRUE, bWorkArea = TRUE;
-bool				bLCTRL = FALSE, bLWIN = FALSE, bKEYV = FALSE;
+HWND				hWnd = NULL, hFgWnd = NULL;	//, hTaskBar = NULL, hDesktop = NULL, hProgman = NULL;
+BOOL				bKPressed = FALSE, bMPressed = FALSE, bShowIcon = TRUE, bWorkArea = TRUE;
+BOOL				bLCTRL = FALSE, bLWIN = FALSE, bKEYV = FALSE;
 
 RECT				rcFW = { 0 };
 NOTIFYICONDATAW		nid = { 0 };
@@ -42,7 +42,7 @@ static const GUID	guid = { 0x2d7b7f30, 0x4b5f, 0x4380, { 0x98, 0x7, 0x57, 0xd7, 
 // Forward declarations of functions included in this code module:
 VOID				HandlingTrayIcon();
 VOID				ShowError(UINT);
-bool				IsWindowApprooved(HWND);
+BOOL				IsWindowApprooved(HWND);
 BOOL	CALLBACK	DlgProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	KeyboardHookProc(int, WPARAM, LPARAM);
@@ -157,9 +157,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	hHeap = GetProcessHeap();
 	szBuffer = HeapAlloc(hHeap, HEAP_ZERO_MEMORY, BUF_LEN);
 
-	hTaskBar = FindWindowW(L"Shell_TrayWnd", NULL);
-	hProgman = FindWindowW(L"Progman", NULL);
-	hDesktop = GetDesktopWindow();
+	//hTaskBar = FindWindowW(L"Shell_TrayWnd", NULL);
+	//hProgman = FindWindowW(L"Progman", NULL);
+	//hDesktop = GetDesktopWindow();
 
 	MSG msg;
 	BOOL bRet;
@@ -331,8 +331,8 @@ LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
+	OutputDebugStringA("Hook Fired!");
 	pkhs = (KBDLLHOOKSTRUCT*)lParam;
-
 	if (WM_KEYUP == wParam)
 	{
 		if (VK_LCONTROL == pkhs->vkCode) bLCTRL = FALSE;
@@ -438,19 +438,18 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
-bool IsWindowApprooved(HWND hFW)
+BOOL IsWindowApprooved(HWND hFW)
 {
 	diag_log("Entering IsWindowApprooved(), handle = 0x", hFW);
 	bool bApprooved = FALSE;
 	if (hFW)
 	{
-		GetClassNameW(hFW, szWinClass, _countof(szWinClass));
+		//GetClassNameW(hFW, szWinClass, _countof(szWinClass));
 		if (GetWindowTextW(hFW, (LPWSTR)szBuffer, BUF_LEN - sizeof(WCHAR))) diag_log("Title: '", ConvertWideToUtf8((LPWSTR)szBuffer), "'");
 		if (IsIconic(hFW)) diag_log("Window is iconic");
 		if (IsZoomed(hFW)) diag_log("Window is maximized");
-		if ((wcscmp(szWinClass, szWinCore) != 0) &&
-			(wcscmp(szWinClass, szWorkerW) != 0) &&
-			(hFW != hDesktop && hFW != hTaskBar && hFW != hProgman))
+		LONG_PTR wlp = GetWindowLongPtr(hFW, GWL_STYLE);
+		if (wlp & WS_CAPTION)
 		{
 			if (!IsIconic(hFW) && !IsZoomed(hFW))
 			{
@@ -459,7 +458,21 @@ bool IsWindowApprooved(HWND hFW)
 			}
 			else ShowError(IDS_ERR_MAXMIN);
 		}
-		else diag_log("The window belongs to the Windows environment");
+		else diag_log("The window has no caption");
+
+		//if ((wcscmp(szWinClass, szWinCore) != 0) &&
+		//	(wcscmp(szWinClass, szWorkerW) != 0) &&
+		//	(hFW != hDesktop && hFW != hTaskBar && hFW != hProgman))
+		//{
+		//	if (!IsIconic(hFW) && !IsZoomed(hFW))
+		//	{
+		//		diag_log("Window is approved");
+		//		bApprooved = TRUE;
+		//	}
+		//	else ShowError(IDS_ERR_MAXMIN);
+		//}
+		//else diag_log("The window belongs to the Windows environment");
+
 	}
 	if (!bApprooved) diag_log("Window is not approved!");
 	diag_log("Quiting IsWindowApprooved()");

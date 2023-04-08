@@ -4,6 +4,7 @@
 #include "framework.h"
 #include "wCenterWindow.h"
 
+#define NO_DONATION
 #define KEY_I 0x49
 #define KEY_C 0x43
 #define KEY_V 0x56
@@ -520,6 +521,10 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		SetDlgItemTextW(hDlg, IDC_ABOUT_COPYRIGHT, szAboutCopyright);
 		SetDlgItemTextW(hDlg, IDC_ABOUT_BUILDTIME, szAboutBuildTime);
 		SetDlgItemTextW(hDlg, IDC_ABOUTHELP, szAboutHelp);
+#ifdef NO_DONATION
+		HWND hLink = GetDlgItem(hDlg, IDC_DONATIONLINK);
+		if (hLink) DestroyWindow(hLink);
+#endif // !NO_DONATION
 		return (INT_PTR)TRUE;
 		break;
 	}

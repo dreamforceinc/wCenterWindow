@@ -1,4 +1,4 @@
-# Update Version v2.0
+# Update Version v2.1
 # Required module: PSIni
 # Installation: Install-Module -Name PsIni
 
@@ -36,8 +36,7 @@ function makeVersionString([string]$vmaj, [string]$vmin, [string]$vbld, [string]
 		}
 	}
 	[string]$nstr = ($vmaj, $vmin, $vbld, $vrev) -join ','
-	$res = @($vstr, $nstr)
-	return $res
+	return @($vstr, $nstr)
 }
 
 #region Initializing variables
@@ -59,19 +58,20 @@ if (-not (Test-Path $iniFile)) {
 if (Test-Path ".\.git") {
 	$isGit = $true
 	[int]$gitCommitCount = [int]$gitRevCount = $null
-	[string]$gitRevDate = [string]$gitVerStr = $null
+	[string]$gitRevDate = [string]$gitVerStr = [string]$gitAHash = $null
 	$gitCommitCount = $(git rev-list --count HEAD)
 	$gitRevDate = $(git log -1 HEAD --date=rfc --pretty=format:%ad%n)
 	$gitVerStr = $(git describe HEAD --long)
 	if ($LastExitCode -eq 0) {
 		$gitVerStr = $gitVerStr.Replace('-g', '-')
 		$gitRevCount = $gitVerStr.Split('-')[-2]
+		$gitAHash = $gitVerStr.Split('-')[-1]
 	}
 	else {
 		$gitVerStr = ""
-		$gitRevCount = $gitCommitCount
+		$gitRevCount = 0
+		$gitAHash = $(git describe HEAD --always)
 	}
-
 }
 
 #region Reading values from INI file
@@ -115,8 +115,15 @@ $verRevision = getValue $verRevision
 $vs = (makeVersionString $verMajor $verMinor $verBuild $verRevision)[0]
 $vn = (makeVersionString $verMajor $verMinor $verBuild $verRevision)[1]
 
-if ([string]::IsNullOrEmpty($gitVerStr)) { $pnf = "$pn v$vs" } else { $pnf = "$pn $gitVerStr" }
-if ($isGit) { $aboutBuild = "Git date: $gitRevDate" } else { $aboutBuild = $buildDateTime }
+# if ([string]::IsNullOrEmpty($gitVerStr)) { $pnf = "$pn v$vs" } else { $pnf = "$pn $gitVerStr" }
+if ($isGit) {
+	$aboutBuild = "Git date: $gitRevDate"
+	$pnf = "$pn v$vs ($gitAHash)"
+}
+else {
+	$aboutBuild = $buildDateTime
+	$pnf = "$pn v$vs"
+}
 
 #region Save all variables to file
 "// $pn" | Out-File -FilePath ".\VersionInfo.h" -Encoding unicode
@@ -134,12 +141,13 @@ if ($isGit) { $aboutBuild = "Git date: $gitRevDate" } else { $aboutBuild = $buil
 "#define VERSION_NUM $vn" | Out-File -FilePath ".\VersionInfo.h" -Encoding unicode -Append
 # "#define SPAN_DAYS $spanDays" | Out-File -FilePath ".\VersionInfo.h" -Encoding unicode -Append
 # "#define SPAN_SECS $spanSecs" | Out-File -FilePath ".\VersionInfo.h" -Encoding unicode -Append
-if ($isGit) {
-	"#define GIT_VERSION_STR `"$gitVerStr`"" | Out-File -FilePath ".\VersionInfo.h" -Encoding unicode -Append
-	# "#define GIT_REV_DATE `"Git date: $gitRevDate`"" | Out-File -FilePath ".\VersionInfo.h" -Encoding unicode -Append
-	# "#define GIT_REV_COUNT $gitRevCount" | Out-File -FilePath ".\VersionInfo.h" -Encoding unicode -Append
-	# "#define GIT_COMMIT_COUNT $gitCommitCount" | Out-File -FilePath ".\VersionInfo.h" -Encoding unicode -Append
-}
+
+# if ($isGit) {
+# 	# "#define GIT_VERSION_STR `"$gitVerStr`"" | Out-File -FilePath ".\VersionInfo.h" -Encoding unicode -Append
+# 	# "#define GIT_REV_DATE `"Git date: $gitRevDate`"" | Out-File -FilePath ".\VersionInfo.h" -Encoding unicode -Append
+# 	# "#define GIT_REV_COUNT $gitRevCount" | Out-File -FilePath ".\VersionInfo.h" -Encoding unicode -Append
+# 	# "#define GIT_COMMIT_COUNT $gitCommitCount" | Out-File -FilePath ".\VersionInfo.h" -Encoding unicode -Append
+# }
 #endregion
 
 #region Print out all variables

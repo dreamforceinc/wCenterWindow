@@ -9,9 +9,6 @@ IF "%~2" == "" GOTO :no_args
 SET solutionDir=%1
 SET projectDir=%2
 
-ECHO   solutionDir: %solutionDir%
-ECHO    projectDir: %projectDir%
-
 CD /D %solutionDir%
 powershell -ExecutionPolicy RemoteSigned -File Update_Version.ps1
 MOVE /Y %solutionDir%VersionInfo.h %projectDir%VersionInfo.h

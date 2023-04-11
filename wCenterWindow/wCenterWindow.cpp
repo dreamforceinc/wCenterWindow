@@ -19,8 +19,6 @@ WCHAR				szTitle[MAX_LOADSTRING];				// Window's title
 WCHAR				szClass[MAX_LOADSTRING];				// Window's class
 WCHAR				szWinTitle[256];
 WCHAR				szWinClass[256];
-//WCHAR				szWinCore[] = L"Windows.UI.Core.CoreWindow";
-//WCHAR				szWorkerW[] = L"WorkerW";
 HANDLE				hHeap = NULL;
 HHOOK				hMouseHook = NULL, hKbdHook = NULL;		// Hook's handles
 HICON				hIcon = NULL;
@@ -122,6 +120,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	wcex.lpfnWndProc = WndProc;
 	wcex.hInstance = hInstance;
 	wcex.hIcon = LoadIconW(hInstance, MAKEINTRESOURCE(IDI_TRAYICON));
+	LoadIconMetric(hInst, MAKEINTRESOURCE(IDI_TRAYICON), LIM_LARGE, &(wcex.hIcon));
 	wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
 	wcex.lpszClassName = szClass;
 	wcex.hIconSm = wcex.hIcon;
@@ -156,10 +155,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	hHeap = GetProcessHeap();
 	szBuffer = HeapAlloc(hHeap, HEAP_ZERO_MEMORY, BUF_LEN);
-
-	//hTaskBar = FindWindowW(L"Shell_TrayWnd", NULL);
-	//hProgman = FindWindowW(L"Progman", NULL);
-	//hDesktop = GetDesktopWindow();
 
 	MSG msg;
 	BOOL bRet;
@@ -227,9 +222,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		nid.hIcon = hIcon;
 		nid.uID = IDI_TRAYICON;
 		nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-		nid.dwInfoFlags = NIIF_NONE;
-		nid.dwState = NIS_HIDDEN;
-		nid.dwStateMask = NIS_HIDDEN;
 		StringCchCopyW(nid.szTip, _countof(nid.szTip), szTitle);
 
 #ifndef _DEBUG
@@ -331,7 +323,6 @@ LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	OutputDebugStringA("Hook Fired!");
 	pkhs = (KBDLLHOOKSTRUCT*)lParam;
 	if (WM_KEYUP == wParam)
 	{
@@ -444,7 +435,6 @@ BOOL IsWindowApprooved(HWND hFW)
 	bool bApprooved = FALSE;
 	if (hFW)
 	{
-		//GetClassNameW(hFW, szWinClass, _countof(szWinClass));
 		if (GetWindowTextW(hFW, (LPWSTR)szBuffer, BUF_LEN - sizeof(WCHAR))) diag_log("Title: '", ConvertWideToUtf8((LPWSTR)szBuffer), "'");
 		if (IsIconic(hFW)) diag_log("Window is iconic");
 		if (IsZoomed(hFW)) diag_log("Window is maximized");
@@ -459,20 +449,6 @@ BOOL IsWindowApprooved(HWND hFW)
 			else ShowError(IDS_ERR_MAXMIN);
 		}
 		else diag_log("The window has no caption");
-
-		//if ((wcscmp(szWinClass, szWinCore) != 0) &&
-		//	(wcscmp(szWinClass, szWorkerW) != 0) &&
-		//	(hFW != hDesktop && hFW != hTaskBar && hFW != hProgman))
-		//{
-		//	if (!IsIconic(hFW) && !IsZoomed(hFW))
-		//	{
-		//		diag_log("Window is approved");
-		//		bApprooved = TRUE;
-		//	}
-		//	else ShowError(IDS_ERR_MAXMIN);
-		//}
-		//else diag_log("The window belongs to the Windows environment");
-
 	}
 	if (!bApprooved) diag_log("Window is not approved!");
 	diag_log("Quiting IsWindowApprooved()");
@@ -488,10 +464,12 @@ VOID HandlingTrayIcon()
 		diag_log("Shell_NotifyIconW(NIM_ADD): ", bResult1);
 		bool bResult2 = Shell_NotifyIconW(NIM_SETVERSION, &nid);
 		diag_log("Shell_NotifyIconW(NIM_SETVERSION): ", bResult2);
+		Shell_NotifyIconW(NIM_MODIFY, &nid);
 		if (!bResult1 || !bResult2)
 		{
 			diag_log("Error creating trayicon!");
 			ShowError(IDS_ERR_ICON);
+			Shell_NotifyIconW(NIM_DELETE, &nid);
 			bShowIcon = FALSE;
 		}
 	}

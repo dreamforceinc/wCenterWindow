@@ -2,6 +2,7 @@
 // wCenterWindow.cpp
 //
 #include "framework.h"
+#include "logger.h"
 #include "wCenterWindow.h"
 
 #define NO_DONATION
@@ -10,12 +11,11 @@
 #define KEY_V 0x56
 
 #define BUF_LEN 1024
-#define MAX_LOADSTRING 50
 #define WM_WCW	0x8F00
 
 // Global variables:
 HINSTANCE			hInst;									// Instance
-WCHAR				szTitle[MAX_LOADSTRING];				// Window's title
+extern WCHAR		szTitle[];
 WCHAR				szClass[MAX_LOADSTRING];				// Window's class
 WCHAR				szWinTitle[256];
 WCHAR				szWinClass[256];
@@ -23,7 +23,7 @@ HANDLE				hHeap = NULL;
 HHOOK				hMouseHook = NULL, hKbdHook = NULL;		// Hook's handles
 HICON				hIcon = NULL;
 HMENU				hMenu = NULL, hPopup = NULL;
-HWND				hWnd = NULL, hFgWnd = NULL;	//, hTaskBar = NULL, hDesktop = NULL, hProgman = NULL;
+HWND				hWnd = NULL, hFgWnd = NULL;
 BOOL				bKPressed = FALSE, bMPressed = FALSE, bShowIcon = TRUE, bWorkArea = TRUE;
 BOOL				bLCTRL = FALSE, bLWIN = FALSE, bKEYV = FALSE;
 
@@ -46,20 +46,17 @@ LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	KeyboardHookProc(int, WPARAM, LPARAM);
 LRESULT CALLBACK	MouseHookProc(int, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
-std::string			ConvertWideToUtf8(const std::wstring&);
-
-
 
 VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 {
-	diag_log("Entering MoveWindowToMonitorCenter(), handle = 0x", hwnd);
+	LOG_TO_FILE(L"Entering the %s() function", TEXT(__FUNCTION__));
 
 	RECT fgwrc = { 0 };
 	GetWindowRect(hwnd, &fgwrc);
 	LONG nWidth = fgwrc.right - fgwrc.left;
 	LONG nHeight = fgwrc.bottom - fgwrc.top;
 
-	diag_log("Moving window from x = ", fgwrc.left, ", y = ", fgwrc.top);
+	LOG_TO_FILE(L"%s(%d): Moving the window from %d, %d", TEXT(__FUNCTION__), __LINE__, fgwrc.left, fgwrc.top);
 
 	MONITORINFO mi = { 0 };
 	mi.cbSize = sizeof(MONITORINFO);
@@ -93,11 +90,9 @@ VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 	MoveWindow(hwnd, x, y, nWidth, nHeight, TRUE);
 	SendMessageW(hwnd, WM_EXITSIZEMOVE, NULL, NULL);
 
-	diag_log("Moving window to x = ", x, ", y = ", y);
-	diag_log("Quiting MoveWindowToMonitorCenter()");
+	LOG_TO_FILE(L"%s(%d): Moving the window to %d, %d", TEXT(__FUNCTION__), __LINE__, x, y);
+	LOG_TO_FILE(L"Exit from the %s() function", TEXT(__FUNCTION__));
 }
-
-
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
@@ -113,7 +108,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	}
 
 	OpenLogFile();
-	diag_log("Entering WinMain()");
+	LOG_TO_FILE(L"Entering the %s() function", TEXT(__FUNCTION__));
 
 	WNDCLASSEX wcex = { 0 };
 	wcex.cbSize = sizeof(WNDCLASSEX);
@@ -140,13 +135,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	int nArgs = 0;
 	LPWSTR* szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
-	std::string arg;
-
-	diag_log("Arguments: ", nArgs - 1);
+	LOG_TO_FILE(L"Arguments count: %d", nArgs - 1);
 	for (int i = 1; i < nArgs; i++)
 	{
-		arg = ConvertWideToUtf8(szArglist[i]);
-		diag_log("Argument #", i, ": ", arg);
+		LOG_TO_FILE(L"Argument %d: %s", i, szArglist[i]);
 	}
 
 	(nArgs >= 2 && 0 == lstrcmpiW(szArglist[1], L"/hide")) ? bShowIcon = FALSE : bShowIcon = TRUE;
@@ -178,7 +170,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (hMenu) DestroyMenu(hMenu);
 	Shell_NotifyIconW(NIM_DELETE, &nid);
 
-	diag_log("Quiting WinMain(), msg.wParam = ", (int)msg.wParam);
+	LOG_TO_FILE(L"Exit from the %s() function, msg.wParam = %d", TEXT(__FUNCTION__), (int)msg.wParam);
 	CloseLogFile();
 	HeapFree(hHeap, NULL, szBuffer);
 
@@ -191,24 +183,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CREATE:
 	{
-		diag_log("Recived WM_CREATE message");
+		LOG_TO_FILE(L"%s(%d): Recived WM_CREATE message", TEXT(__FUNCTION__), __LINE__);
+
 		hMenu = LoadMenuW(hInst, MAKEINTRESOURCE(IDR_MENU));
 		if (!hMenu)
 		{
-			diag_log("Loading context menu failed!");
+			LOG_TO_FILE(L"%s(%d): Loading context menu failed!", TEXT(__FUNCTION__), __LINE__);
 			ShowError(IDS_ERR_MENU);
 			PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 		}
-		diag_log("Context menu successfully loaded");
+		LOG_TO_FILE(L"%s(%d): Context menu successfully loaded", TEXT(__FUNCTION__), __LINE__);
 
 		hPopup = GetSubMenu(hMenu, 0);
 		if (!hPopup)
 		{
-			diag_log("Creating popup menu failed!");
+			LOG_TO_FILE(L"%s(%d): Creating popup menu failed!", TEXT(__FUNCTION__), __LINE__);
 			ShowError(IDS_ERR_POPUP);
 			PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 		}
-		diag_log("Popup menu successfully created");
+		LOG_TO_FILE(L"%s(%d): Popup menu successfully created", TEXT(__FUNCTION__), __LINE__);
 
 		mii.cbSize = sizeof(MENUITEMINFO);
 		mii.fMask = MIIM_STATE;
@@ -228,67 +221,69 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		hMouseHook = SetWindowsHookExW(WH_MOUSE_LL, MouseHookProc, hInst, NULL);
 		if (!hMouseHook)
 		{
-			diag_log("Creating mouse hook failed!");
+			LOG_TO_FILE(L"%s(%d): Mouse hook creation failed!", TEXT(__FUNCTION__), __LINE__);
 			ShowError(IDS_ERR_HOOK);
 			PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 		}
-		diag_log("Mouse hook was successfully set");
+		LOG_TO_FILE(L"%s(%d): The mouse hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
 #endif // !_DEBUG
 
 		hKbdHook = SetWindowsHookExW(WH_KEYBOARD_LL, KeyboardHookProc, hInst, NULL);
 		if (!hKbdHook)
 		{
-			diag_log("Creating keyboard hook failed!");
+			LOG_TO_FILE(L"%s(%d): Keyboard hook creation failed!", TEXT(__FUNCTION__), __LINE__);
 			ShowError(IDS_ERR_HOOK);
 			PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 		}
-		diag_log("Keyboard hook was successfully set");
+		LOG_TO_FILE(L"%s(%d): The keyboard hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
 		break;
 	}
 
-	case WM_WCW:
+	case WM_WCW:			// Popup menu handler
 	{
 		if (IDI_TRAYICON == wParam && (WM_RBUTTONDOWN == lParam || WM_LBUTTONDOWN == lParam))
 		{
-			diag_log("Entering menu handler");
+			LOG_TO_FILE(L"%s(%d): Entering the WM_WCW message handler", TEXT(__FUNCTION__), __LINE__);
+
 			SetForegroundWindow(hWnd);
 			POINT pt;
 			GetCursorPos(&pt);
 			int idMenu = TrackPopupMenu(hPopup, TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, NULL);
 			if (ID_POPUPMENU_ICON == idMenu)
 			{
-				diag_log("Pressed 'Hide icon' menuitem");
+				LOG_TO_FILE(L"%s(%d): Pressed the 'Hide icon' menuitem", TEXT(__FUNCTION__), __LINE__);
 				bShowIcon = FALSE;
 				HandlingTrayIcon();
 			}
 			if (ID_POPUPMENU_AREA == idMenu)
 			{
-				diag_log("Pressed 'Use workarea' menuitem");
+				LOG_TO_FILE(L"%s(%d): Pressed the 'Use workarea' menuitem", TEXT(__FUNCTION__), __LINE__);
 				bWorkArea = !bWorkArea;
 				bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
 				SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
-				diag_log("Changed 'Use workarea' option to ", bWorkArea);
+				LOG_TO_FILE(L"%s(%d): Changed 'Use workarea' option to %s", TEXT(__FUNCTION__), __LINE__, bWorkArea ? L"True" : L"False");
 			}
 			if (ID_POPUPMENU_ABOUT == idMenu && !bKPressed)
 			{
-				diag_log("Pressed 'About' menuitem");
+				LOG_TO_FILE(L"%s(%d): Pressed the 'About' menuitem", TEXT(__FUNCTION__), __LINE__);
 				bKPressed = TRUE;
 				DialogBoxW(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, (DLGPROC)About);
 				bKPressed = FALSE;
 			}
 			if (ID_POPUPMENU_EXIT == idMenu)
 			{
-				diag_log("Pressed 'Exit' menuitem");
+				LOG_TO_FILE(L"%s(%d): Pressed the 'Exit' menuitem", TEXT(__FUNCTION__), __LINE__);
 				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
-			diag_log("Quiting menu handler");
+
+			LOG_TO_FILE(L"%s(%d): Exit from the WM_WCW message handler", TEXT(__FUNCTION__), __LINE__);
 		}
 		break;
 	}
 
 	case WM_QUERYENDSESSION:
 	{
-		diag_log("Recieved WM_QUERYENDSESSION message, lParam = ", lParam);
+		LOG_TO_FILE(L"%s(%d): Recieved the WM_QUERYENDSESSION message, lParam = 0x%08X", TEXT(__FUNCTION__), __LINE__, (long)lParam);
 		CloseLogFile();
 		return TRUE;
 		break;
@@ -296,7 +291,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_DESTROY:
 	{
-		diag_log("Recived WM_DESTROY message");
+		LOG_TO_FILE(L"%s(%d): Recieved the WM_DESTROY message", TEXT(__FUNCTION__), __LINE__);
 		PostQuitMessage(0);
 		break;
 	}
@@ -312,7 +307,7 @@ LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 	if (WM_MBUTTONUP == wParam) bMPressed = FALSE;
 	if (WM_MBUTTONDOWN == wParam && bLCTRL && bLWIN && !bMPressed)
 	{
-		diag_log("Pressed LCTRL + LWIN + MMB");
+		LOG_TO_FILE(L"%s(%d): Pressed LCTRL + LWIN + MMB", TEXT(__FUNCTION__), __LINE__);
 		bMPressed = TRUE;
 		hFgWnd = GetForegroundWindow();
 		if (IsWindowApprooved(hFgWnd)) MoveWindowToMonitorCenter(hFgWnd, bWorkArea, FALSE);
@@ -338,7 +333,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 		if (KEY_I == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed)	// 'I' key
 		{
-			diag_log("Pressed LCTRL + LWIN + I");
+			LOG_TO_FILE(L"%s(%d): Pressed LCTRL + LWIN + I", TEXT(__FUNCTION__), __LINE__);
 			bKPressed = TRUE;
 			bShowIcon = !bShowIcon;
 			HandlingTrayIcon();
@@ -347,7 +342,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 		if (KEY_C == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed && !bKEYV)	// 'C' key
 		{
-			diag_log("Pressed LCTRL + LWIN + C");
+			LOG_TO_FILE(L"%s(%d): Pressed LCTRL + LWIN + C", TEXT(__FUNCTION__), __LINE__);
 			bKPressed = TRUE;
 			hFgWnd = GetForegroundWindow();
 			if (IsWindowApprooved(hFgWnd)) MoveWindowToMonitorCenter(hFgWnd, bWorkArea, FALSE);
@@ -357,12 +352,12 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 		if (KEY_V == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed && !bKEYV)	// 'V' key
 		{
-			diag_log("Pressed LCTRL + LWIN + V");
+			LOG_TO_FILE(L"%s(%d): Pressed LCTRL + LWIN + V", TEXT(__FUNCTION__), __LINE__);
 			bKPressed = TRUE; bKEYV = TRUE;
 			hFgWnd = GetForegroundWindow();
 			if (IsWindowApprooved(hFgWnd))
 			{
-				diag_log("Opening 'Manual editing' dialog");
+				LOG_TO_FILE(L"%s(%d): Opening the 'Manual editing' dialog", TEXT(__FUNCTION__), __LINE__);
 				DialogBoxW(hInst, MAKEINTRESOURCE(IDD_MANUAL_EDITING), hFgWnd, (DLGPROC)DlgProc);
 				SetForegroundWindow(hFgWnd);
 			}
@@ -381,7 +376,8 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_INITDIALOG:
 	{
-		diag_log("Initializing 'Manual editing' dialog");
+		LOG_TO_FILE(L"%s(%d): Initializing the 'Manual editing' dialog", TEXT(__FUNCTION__), __LINE__);
+
 		SetWindowTextW(hDlg, szTitle);
 		GetWindowTextW(hFgWnd, szWinTitle, _countof(szWinTitle));
 		GetClassNameW(hFgWnd, szWinClass, _countof(szWinClass));
@@ -405,7 +401,8 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 		{
 		case IDC_BUTTON_SET:
 		{
-			diag_log("Pressed 'Set' button");
+			LOG_TO_FILE(L"%s(%d): Pressed the 'Set' button", TEXT(__FUNCTION__), __LINE__);
+
 			x = GetDlgItemInt(hDlg, IDC_EDIT_X, NULL, TRUE);
 			y = GetDlgItemInt(hDlg, IDC_EDIT_Y, NULL, TRUE);
 			w = GetDlgItemInt(hDlg, IDC_EDIT_WIDTH, NULL, FALSE);
@@ -413,14 +410,16 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 			SendMessageW(hFgWnd, WM_ENTERSIZEMOVE, NULL, NULL);
 			MoveWindow(hFgWnd, x, y, w, h, TRUE);
 			SendMessageW(hFgWnd, WM_EXITSIZEMOVE, NULL, NULL);
-			diag_log("Window with handle 0x", hFgWnd, " was moved to x = ", x, ", y = ", y);
+
+			LOG_TO_FILE(L"%s(%d): Window with handle 0x%08X was moved to %d, %d", TEXT(__FUNCTION__), __LINE__, hFgWnd, x, y);
 			return TRUE;
 			break;
 		}
 		case IDCANCEL:
 		case IDC_BUTTON_CLOSE:
 		{
-			diag_log("Closing 'Manual editing' dialog");
+			LOG_TO_FILE(L"%s(%d): Closing the 'Manual editing' dialog", TEXT(__FUNCTION__), __LINE__);
+
 			EndDialog(hDlg, LOWORD(wParam));
 			break;
 		}
@@ -431,53 +430,82 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 
 BOOL IsWindowApprooved(HWND hFW)
 {
-	diag_log("Entering IsWindowApprooved(), handle = 0x", hFW);
+	LOG_TO_FILE(L"Entering the %s() function, handle = 0x%08X", TEXT(__FUNCTION__), hFW);
+
 	bool bApprooved = FALSE;
 	if (hFW)
 	{
-		if (GetWindowTextW(hFW, (LPWSTR)szBuffer, BUF_LEN - sizeof(WCHAR))) diag_log("Title: '", ConvertWideToUtf8((LPWSTR)szBuffer), "'");
-		if (IsIconic(hFW)) diag_log("Window is iconic");
-		if (IsZoomed(hFW)) diag_log("Window is maximized");
-		LONG_PTR wlp = GetWindowLongPtr(hFW, GWL_STYLE);
+		if (GetWindowTextW(hFW, (LPWSTR)szBuffer, BUF_LEN - sizeof(WCHAR)))
+		{
+			LOG_TO_FILE(L"%s(%d): Window title: '%s'", TEXT(__FUNCTION__), __LINE__, (LPWSTR)szBuffer);
+		}
+
+		if (IsIconic(hFW))
+		{
+			LOG_TO_FILE(L"%s(%d): The window is iconified", TEXT(__FUNCTION__), __LINE__);
+		}
+
+		if (IsZoomed(hFW))
+		{
+			LOG_TO_FILE(L"%s(%d): The window is maximized", TEXT(__FUNCTION__), __LINE__);
+		}
+
+		LONG_PTR wlp = GetWindowLongPtrW(hFW, GWL_STYLE);
 		if (wlp & WS_CAPTION)
 		{
 			if (!IsIconic(hFW) && !IsZoomed(hFW))
 			{
-				diag_log("Window is approved");
+				LOG_TO_FILE(L"%s(%d): The window is approved!", TEXT(__FUNCTION__), __LINE__);
 				bApprooved = TRUE;
 			}
 			else ShowError(IDS_ERR_MAXMIN);
 		}
-		else diag_log("The window has no caption");
+		else
+		{
+			LOG_TO_FILE(L"%s(%d): The window has no caption!", TEXT(__FUNCTION__), __LINE__);
+		}
 	}
-	if (!bApprooved) diag_log("Window is not approved!");
-	diag_log("Quiting IsWindowApprooved()");
+
+	if (!bApprooved)
+	{
+		LOG_TO_FILE(L"%s(%d): The window is not approved!", TEXT(__FUNCTION__), __LINE__);
+	}
+
+	LOG_TO_FILE(L"Exit from the %s() function", TEXT(__FUNCTION__));
 	return bApprooved;
 }
 
 VOID HandlingTrayIcon()
 {
-	diag_log("Entering HandlingTrayIcon(), bShowIcon = ", bShowIcon);
+	LOG_TO_FILE(L"Entering the %s() function, bShowIcon = %s", TEXT(__FUNCTION__), bShowIcon ? L"True" : L"False");
+
 	if (bShowIcon)
 	{
 		bool bResult1 = Shell_NotifyIconW(NIM_ADD, &nid);
-		diag_log("Shell_NotifyIconW(NIM_ADD): ", bResult1);
+		LOG_TO_FILE(L"%s(%d): Shell_NotifyIconW(NIM_ADD): %s", TEXT(__FUNCTION__), __LINE__, bResult1 ? L"True" : L"False");
+
 		bool bResult2 = Shell_NotifyIconW(NIM_SETVERSION, &nid);
-		diag_log("Shell_NotifyIconW(NIM_SETVERSION): ", bResult2);
-		Shell_NotifyIconW(NIM_MODIFY, &nid);
+		LOG_TO_FILE(L"%s(%d): Shell_NotifyIconW(NIM_SETVERSION): %s", TEXT(__FUNCTION__), __LINE__, bResult2 ? L"True" : L"False");
+
 		if (!bResult1 || !bResult2)
 		{
-			diag_log("Error creating trayicon!");
+			LOG_TO_FILE(L"%s(%d): Error creating trayicon!", TEXT(__FUNCTION__), __LINE__);
+
 			ShowError(IDS_ERR_ICON);
 			Shell_NotifyIconW(NIM_DELETE, &nid);
 			bShowIcon = FALSE;
+		}
+		else
+		{
+			Shell_NotifyIconW(NIM_MODIFY, &nid);
 		}
 	}
 	else
 	{
 		Shell_NotifyIconW(NIM_DELETE, &nid);
 	}
-	diag_log("Quiting HandlingTrayIcon()");
+
+	LOG_TO_FILE(L"Exit from the %s() function", TEXT(__FUNCTION__));
 }
 
 VOID ShowError(UINT uID)
@@ -498,7 +526,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_INITDIALOG:
 	{
-		diag_log("Initializing 'About' dialog");
+		LOG_TO_FILE(L"%s(%d): Initializing the 'About' dialog", TEXT(__FUNCTION__), __LINE__);
 
 		WCHAR szAboutProgName[MAX_LOADSTRING];
 		WCHAR szAboutCopyright[MAX_LOADSTRING];
@@ -516,6 +544,9 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		HWND hLink = GetDlgItem(hDlg, IDC_DONATIONLINK);
 		if (hLink) DestroyWindow(hLink);
 #endif // !NO_DONATION
+
+		LOG_TO_FILE(L"%s(%d): End of initializing the 'About' dialog", TEXT(__FUNCTION__), __LINE__);
+
 		return (INT_PTR)TRUE;
 		break;
 	}
@@ -528,7 +559,9 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			PNMLINK pNMLink = (PNMLINK)pNMHdr;
 			LITEM item = pNMLink->item;
 			ShellExecuteW(NULL, L"open", item.szUrl, NULL, NULL, SW_SHOW);
-			diag_log("Pressed donation link");
+
+			LOG_TO_FILE(L"%s(%d): Pressed the donation link! :-)", TEXT(__FUNCTION__), __LINE__);
+
 			return (INT_PTR)TRUE;
 		}
 		break;
@@ -539,19 +572,13 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		if (IDOK == LOWORD(wParam) || IDCANCEL == LOWORD(wParam))
 		{
 			EndDialog(hDlg, LOWORD(wParam));
-			diag_log("Closing 'About' dialog");
+
+			LOG_TO_FILE(L"%s(%d): Closing the 'About' dialog", TEXT(__FUNCTION__), __LINE__);
+
 			return (INT_PTR)TRUE;
 		}
 		break;
 	}
 	}
 	return (INT_PTR)FALSE;
-}
-
-std::string ConvertWideToUtf8(const std::wstring& wstr)
-{
-	int count = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), NULL, 0, NULL, NULL);
-	std::string str(count, 0);
-	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], count, NULL, NULL);
-	return str;
 }

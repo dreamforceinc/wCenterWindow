@@ -36,6 +36,7 @@
 #define IDC_ABOUT_PROGNAME              1010
 #define IDC_ABOUT_COPYRIGHT             1011
 #define IDC_ABOUT_BUILDTIME             1012
+#define IDC_ABOUTEDIT                   1013
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -45,7 +46,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1013
+#define _APS_NEXT_CONTROL_VALUE         1014
 #define _APS_NEXT_SYMED_VALUE           122
 #endif
 #endif

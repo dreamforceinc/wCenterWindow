@@ -108,6 +108,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	}
 
 	OpenLogFile();
+
 	LOG_TO_FILE(L"Entering the %s() function", TEXT(__FUNCTION__));
 
 	WNDCLASSEX wcex = { 0 };
@@ -135,7 +136,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	int nArgs = 0;
 	LPWSTR* szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+
 	LOG_TO_FILE(L"Arguments count: %d", nArgs - 1);
+
 	for (int i = 1; i < nArgs; i++)
 	{
 		LOG_TO_FILE(L"Argument %d: %s", i, szArglist[i]);
@@ -172,6 +175,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	DestroyIcon(hIcon);
 
 	LOG_TO_FILE(L"Exit from the %s() function, msg.wParam = %d", TEXT(__FUNCTION__), (int)msg.wParam);
+
 	CloseLogFile();
 	HeapFree(hHeap, NULL, szBuffer);
 
@@ -223,6 +227,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (!hMouseHook)
 		{
 			LOG_TO_FILE(L"%s(%d): Mouse hook creation failed!", TEXT(__FUNCTION__), __LINE__);
+
 			ShowError(IDS_ERR_HOOK);
 			PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 		}
@@ -233,6 +238,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (!hKbdHook)
 		{
 			LOG_TO_FILE(L"%s(%d): Keyboard hook creation failed!", TEXT(__FUNCTION__), __LINE__);
+
 			ShowError(IDS_ERR_HOOK);
 			PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 		}
@@ -253,12 +259,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (ID_POPUPMENU_ICON == idMenu)
 			{
 				LOG_TO_FILE(L"%s(%d): Pressed the 'Hide icon' menuitem", TEXT(__FUNCTION__), __LINE__);
+
 				bShowIcon = FALSE;
 				HandlingTrayIcon();
 			}
 			if (ID_POPUPMENU_AREA == idMenu)
 			{
 				LOG_TO_FILE(L"%s(%d): Pressed the 'Use workarea' menuitem", TEXT(__FUNCTION__), __LINE__);
+
 				bWorkArea = !bWorkArea;
 				bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
 				SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
@@ -267,6 +275,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (ID_POPUPMENU_ABOUT == idMenu && !bKPressed)
 			{
 				LOG_TO_FILE(L"%s(%d): Pressed the 'About' menuitem", TEXT(__FUNCTION__), __LINE__);
+
 				bKPressed = TRUE;
 				DialogBoxW(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, (DLGPROC)About);
 				bKPressed = FALSE;
@@ -274,6 +283,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (ID_POPUPMENU_EXIT == idMenu)
 			{
 				LOG_TO_FILE(L"%s(%d): Pressed the 'Exit' menuitem", TEXT(__FUNCTION__), __LINE__);
+
 				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 
@@ -285,6 +295,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_QUERYENDSESSION:
 	{
 		LOG_TO_FILE(L"%s(%d): Recieved the WM_QUERYENDSESSION message, lParam = 0x%08X", TEXT(__FUNCTION__), __LINE__, (long)lParam);
+
 		CloseLogFile();
 		return TRUE;
 		break;
@@ -293,6 +304,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 	{
 		LOG_TO_FILE(L"%s(%d): Recieved the WM_DESTROY message", TEXT(__FUNCTION__), __LINE__);
+
 		PostQuitMessage(0);
 		break;
 	}
@@ -309,6 +321,7 @@ LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 	if (WM_MBUTTONDOWN == wParam && bLCTRL && bLWIN && !bMPressed)
 	{
 		LOG_TO_FILE(L"%s(%d): Pressed LCTRL + LWIN + MMB", TEXT(__FUNCTION__), __LINE__);
+
 		bMPressed = TRUE;
 		hFgWnd = GetForegroundWindow();
 		if (IsWindowApprooved(hFgWnd)) MoveWindowToMonitorCenter(hFgWnd, bWorkArea, FALSE);
@@ -335,6 +348,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 		if (KEY_I == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed)	// 'I' key
 		{
 			LOG_TO_FILE(L"%s(%d): Pressed LCTRL + LWIN + I", TEXT(__FUNCTION__), __LINE__);
+
 			bKPressed = TRUE;
 			bShowIcon = !bShowIcon;
 			HandlingTrayIcon();
@@ -344,6 +358,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 		if (KEY_C == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed && !bKEYV)	// 'C' key
 		{
 			LOG_TO_FILE(L"%s(%d): Pressed LCTRL + LWIN + C", TEXT(__FUNCTION__), __LINE__);
+
 			bKPressed = TRUE;
 			hFgWnd = GetForegroundWindow();
 			if (IsWindowApprooved(hFgWnd)) MoveWindowToMonitorCenter(hFgWnd, bWorkArea, FALSE);
@@ -354,11 +369,13 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 		if (KEY_V == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed && !bKEYV)	// 'V' key
 		{
 			LOG_TO_FILE(L"%s(%d): Pressed LCTRL + LWIN + V", TEXT(__FUNCTION__), __LINE__);
+
 			bKPressed = TRUE; bKEYV = TRUE;
 			hFgWnd = GetForegroundWindow();
 			if (IsWindowApprooved(hFgWnd))
 			{
 				LOG_TO_FILE(L"%s(%d): Opening the 'Manual editing' dialog", TEXT(__FUNCTION__), __LINE__);
+
 				DialogBoxW(hInst, MAKEINTRESOURCE(IDD_MANUAL_EDITING), hFgWnd, (DLGPROC)DlgProc);
 				SetForegroundWindow(hFgWnd);
 			}
@@ -413,6 +430,7 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 			SendMessageW(hFgWnd, WM_EXITSIZEMOVE, NULL, NULL);
 
 			LOG_TO_FILE(L"%s(%d): Window with handle 0x%08X was moved to %d, %d", TEXT(__FUNCTION__), __LINE__, hFgWnd, x, y);
+
 			return TRUE;
 			break;
 		}
@@ -457,6 +475,7 @@ BOOL IsWindowApprooved(HWND hFW)
 			if (!IsIconic(hFW) && !IsZoomed(hFW))
 			{
 				LOG_TO_FILE(L"%s(%d): The window is approved!", TEXT(__FUNCTION__), __LINE__);
+
 				bApprooved = TRUE;
 			}
 			else ShowError(IDS_ERR_MAXMIN);
@@ -473,6 +492,7 @@ BOOL IsWindowApprooved(HWND hFW)
 	}
 
 	LOG_TO_FILE(L"Exit from the %s() function", TEXT(__FUNCTION__));
+
 	return bApprooved;
 }
 
@@ -540,7 +560,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		SetDlgItemTextW(hDlg, IDC_ABOUT_PROGNAME, szAboutProgName);
 		SetDlgItemTextW(hDlg, IDC_ABOUT_COPYRIGHT, szAboutCopyright);
 		SetDlgItemTextW(hDlg, IDC_ABOUT_BUILDTIME, szAboutBuildTime);
-		SetDlgItemTextW(hDlg, IDC_ABOUTHELP, szAboutHelp);
+		SetDlgItemTextW(hDlg, IDC_ABOUTEDIT, szAboutHelp);
 #ifdef NO_DONATION
 		HWND hLink = GetDlgItem(hDlg, IDC_DONATIONLINK);
 		if (hLink) DestroyWindow(hLink);

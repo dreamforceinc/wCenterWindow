@@ -1,4 +1,4 @@
-// wLogger v3.0 (Edited version from RBTray project [https://github.com/benbuck/rbtray])
+// wLogger v3.1 (Edited version from RBTray project [https://github.com/benbuck/rbtray])
 // logger.h
 // Usage: LOG_TO_FILE(L"%s(%d): Log message", TEXT(__FUNCTION__), __LINE__);
 #pragma once

@@ -1,59 +1,71 @@
-// wCenterWindow
-// Logger.h
-//
+// wLogger v3.1 (Edited version from RBTray project [https://github.com/benbuck/rbtray])
+// logger.h
+// Usage: LOG_TO_FILE(L"%s(%d): Log message", TEXT(__FUNCTION__), __LINE__);
 #pragma once
 #include "framework.h"
 
-extern std::ofstream logfile;
-std::string GetTimeStamp();
+#define DBUFLEN 256
+#define LOG_TO_FILE(fmt, ...) do { StringCchPrintfW(debugBuffer, DBUFLEN, fmt, ##__VA_ARGS__); logfile << GetTimeStamp() << debugBuffer << std::endl; } while (0)
 
-template <typename T1>
-void diag_log(T1 arg1)
+SYSTEMTIME lt;
+wchar_t debugTimeBuffer[32];
+wchar_t debugBuffer[DBUFLEN];
+std::wofstream logfile;
+
+extern wchar_t szTitle[];
+
+wchar_t* GetTimeStamp()
 {
-	logfile << GetTimeStamp() << arg1 << std::endl;
+	GetLocalTime(&lt);
+	StringCchPrintfW(debugTimeBuffer, 32, L"%d-%02d-%02d %02d:%02d:%02d.%03d | ", lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
+	return debugTimeBuffer;
 }
 
-template <typename T1, typename T2>
-void diag_log(T1 arg1, T2 arg2)
+void OpenLogFile()
 {
-	logfile << GetTimeStamp() << arg1 << arg2 << std::endl;
+	WCHAR lpszPath[MAX_PATH + 1] = { 0 };
+	DWORD dwPathLength = GetModuleFileNameW(NULL, lpszPath, MAX_PATH);
+	DWORD dwError = GetLastError();
+	if (ERROR_INSUFFICIENT_BUFFER == dwError)
+	{
+		MessageBoxW(NULL, L"Path to logfile is too long! Working without logging", szTitle, MB_OK | MB_ICONWARNING);
+		return;
+	}
+	if (NULL == dwPathLength)
+	{
+		MessageBoxW(NULL, L"Can't get module filename! Working without logging", szTitle, MB_OK | MB_ICONWARNING);
+		return;
+	}
+
+	std::filesystem::path log_path = lpszPath;
+	log_path.replace_extension(L".log");
+	std::filesystem::path bak_path = log_path;
+	bak_path.replace_extension(L".bak");
+
+	if (std::filesystem::exists(log_path)) std::filesystem::rename(log_path, bak_path);
+#ifdef _DEBUG
+	log_path = L"D:\\test.log";
+#endif
+	logfile.open(log_path, std::ios::trunc);
+	if (logfile.is_open())
+	{
+		logfile << "\xEF\xBB\xBF";			// (0xEF, 0xBB, 0xBF) - UTF-8 BOM
+		logfile.imbue(std::locale("en-US.utf8"));
+		logfile << GetTimeStamp() << "[ " << szTitle << " ] Start log." << std::endl;
+		logfile << GetTimeStamp() << "Logfile: \"" << log_path.native() << "\"" << std::endl;
+	}
+	else
+	{
+		MessageBoxW(NULL, L"Can't open logfile! Working without logging", szTitle, MB_OK | MB_ICONWARNING);
+	}
+	return;
 }
 
-template <typename T1, typename T2, typename T3>
-void diag_log(T1 arg1, T2 arg2, T3 arg3)
+void CloseLogFile()
 {
-	logfile << GetTimeStamp() << arg1 << arg2 << arg3 << std::endl;
+	if (logfile)
+	{
+		logfile << GetTimeStamp() << "[ " << szTitle << " ] Stop log." << std::endl;
+		logfile.close();
+	}
 }
-
-template <typename T1, typename T2, typename T3, typename T4>
-void diag_log(T1 arg1, T2 arg2, T3 arg3, T4 arg4)
-{
-	logfile << GetTimeStamp() << arg1 << arg2 << arg3 << arg4 << std::endl;
-}
-
-template <typename T1, typename T2, typename T3, typename T4, typename T5>
-void diag_log(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
-{
-	logfile << GetTimeStamp() << arg1 << arg2 << arg3 << arg4 << arg5 << std::endl;
-}
-
-template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-void diag_log(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
-{
-	logfile << GetTimeStamp() << arg1 << arg2 << arg3 << arg4 << arg5 << arg6 << std::endl;
-}
-
-template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-void diag_log(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
-{
-	logfile << GetTimeStamp() << arg1 << arg2 << arg3 << arg4 << arg5 << arg6 << arg7 << std::endl;
-}
-
-template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-void diag_log(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
-{
-	logfile << GetTimeStamp() << arg1 << arg2 << arg3 << arg4 << arg5 << arg6 << arg7 << arg8 << std::endl;
-}
-
-void OpenLogFile();
-void CloseLogFile();

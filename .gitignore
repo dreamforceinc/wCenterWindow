@@ -437,3 +437,5 @@ lightgbm.Rcheck/
 # GraphViz artifacts
 *.gv
 *.gv.*
+/VersionInfo.h
+/wCenterWindow/VersionInfo.h

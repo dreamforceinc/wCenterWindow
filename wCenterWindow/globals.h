@@ -2,6 +2,7 @@
 // globals.h
 //
 #pragma once
+#include "wCenterWindow.h"
 
 #define MAX_LOADSTRING 50
 #define TBUFLEN 32

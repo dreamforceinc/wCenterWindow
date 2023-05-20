@@ -8,8 +8,8 @@
 //
 #include "framework.h"
 #include "globals.h"
-#include "logger.h"
 #include "wCenterWindow.h"
+#include "logger.h"
 
 #define NO_DONATION
 #define KEY_I 0x49

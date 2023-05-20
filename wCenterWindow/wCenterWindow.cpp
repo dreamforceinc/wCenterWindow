@@ -113,7 +113,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		return FALSE;
 	}
 
-	OpenLogFile();
+	OpenLogFile(szTitle, TEXT(VERSION_STR));
 
 	LOG_TO_FILE(L"Entering the %s() function", TEXT(__FUNCTION__));
 

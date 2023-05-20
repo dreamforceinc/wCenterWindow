@@ -8,7 +8,7 @@
 #define TBUFLEN 32
 #define DBUFLEN 256
 
-extern WCHAR szTitle[MAX_LOADSTRING];
+//extern WCHAR szTitle[MAX_LOADSTRING];
 
 extern SYSTEMTIME lt;
 extern wchar_t debugBuffer[DBUFLEN];

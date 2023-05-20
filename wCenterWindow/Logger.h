@@ -11,5 +11,5 @@
 #define LOG_TO_FILE(fmt, ...) StringCchPrintfW(debugBuffer, DBUFLEN, fmt, ##__VA_ARGS__); logfile << GetTimeStamp() << debugBuffer << std::endl;
 
 wchar_t* GetTimeStamp();
-void OpenLogFile();
+void OpenLogFile(const wchar_t[], const wchar_t[]);
 void CloseLogFile();

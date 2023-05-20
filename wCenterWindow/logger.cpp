@@ -17,19 +17,21 @@ wchar_t* GetTimeStamp()
 	return debugTimeBuffer;
 }
 
-void OpenLogFile()
+void OpenLogFile(const wchar_t appTitle[], const wchar_t appVersion[])
 {
+	WCHAR appTitleVer[MAX_LOADSTRING]{ 0 };
+	StringCchPrintfW(appTitleVer, MAX_LOADSTRING, L"%s v%s", appTitle, appVersion);
 	WCHAR lpszPath[MAX_PATH + 1] = { 0 };
 	DWORD dwPathLength = GetModuleFileNameW(NULL, lpszPath, MAX_PATH);
 	DWORD dwError = GetLastError();
 	if (ERROR_INSUFFICIENT_BUFFER == dwError)
 	{
-		MessageBoxW(NULL, L"Path to logfile is too long! Working without logging", szTitle, MB_OK | MB_ICONWARNING);
+		MessageBoxW(NULL, L"Path to logfile is too long! Working without logging", appTitle, MB_OK | MB_ICONWARNING);
 		return;
 	}
 	if (NULL == dwPathLength)
 	{
-		MessageBoxW(NULL, L"Can't get module filename! Working without logging", szTitle, MB_OK | MB_ICONWARNING);
+		MessageBoxW(NULL, L"Can't get module filename! Working without logging", appTitle, MB_OK | MB_ICONWARNING);
 		return;
 	}
 
@@ -47,12 +49,12 @@ void OpenLogFile()
 	{
 		logfile << "\xEF\xBB\xBF";			// (0xEF, 0xBB, 0xBF) - UTF-8 BOM
 		logfile.imbue(std::locale("en-US.utf8"));
-		logfile << GetTimeStamp() << "[ " << szTitle << " ] Start log." << std::endl;
+		logfile << GetTimeStamp() << "[ " << appTitleVer << " ] Start log." << std::endl;
 		logfile << GetTimeStamp() << "Logfile: \"" << log_path.native() << "\"" << std::endl;
 	}
 	else
 	{
-		MessageBoxW(NULL, L"Can't open logfile! Working without logging", szTitle, MB_OK | MB_ICONWARNING);
+		MessageBoxW(NULL, L"Can't open logfile! Working without logging", appTitle, MB_OK | MB_ICONWARNING);
 	}
 	return;
 }
@@ -61,8 +63,7 @@ void CloseLogFile()
 {
 	if (logfile)
 	{
-		logfile << GetTimeStamp() << "[ " << szTitle << " ] Stop log." << std::endl;
+		logfile << GetTimeStamp() << "Stop log." << std::endl;
 		logfile.close();
 	}
 }
-

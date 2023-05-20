@@ -8,7 +8,7 @@
 #include "globals.h"
 #include "wCenterWindow.h"
 
-#define LOG_TO_FILE(fmt, ...) do { StringCchPrintfW(debugBuffer, DBUFLEN, fmt, ##__VA_ARGS__); logfile << GetTimeStamp() << debugBuffer << std::endl; } while (0)
+#define LOG_TO_FILE(fmt, ...) StringCchPrintfW(debugBuffer, DBUFLEN, fmt, ##__VA_ARGS__); logfile << GetTimeStamp() << debugBuffer << std::endl;
 
 SYSTEMTIME lt;
 wchar_t debugTimeBuffer[TBUFLEN];

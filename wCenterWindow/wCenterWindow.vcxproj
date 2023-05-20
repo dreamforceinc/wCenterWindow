@@ -188,7 +188,7 @@
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="logger.h" />
-    <ClInclude Include="Resource.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="wCenterWindow.h" />
   </ItemGroup>
@@ -199,7 +199,6 @@
     <ResourceCompile Include="wCenterWindow.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico" />
     <Image Include="wCenterWindow.ico" />
   </ItemGroup>
   <ItemGroup>

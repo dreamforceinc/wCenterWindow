@@ -1,6 +1,9 @@
-// wLogger v3.1 (Edited version from RBTray project [https://github.com/benbuck/rbtray])
+// wCenterWindow
 // logger.h
+// wLogger v3.1 (Edited version from RBTray project [https://github.com/benbuck/rbtray])
+// 
 // Usage: LOG_TO_FILE(L"%s(%d): Log message", TEXT(__FUNCTION__), __LINE__);
+//
 #pragma once
 #include "framework.h"
 

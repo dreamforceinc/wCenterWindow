@@ -1,7 +1,7 @@
 // wCenterWindow
 // wCenterWindow.cpp
+// 
 // TODO: Licensing.
-// TODO: Move restricted window classes to Array.
 // TODO: Change keyboard low-level hook to RegisterHotKey function.
 // TODO: Add check for updates.
 // TODO: Make x64 version.
@@ -40,7 +40,7 @@ MENUITEMINFO		mii = { 0 };
 LPVOID				szBuffer;
 
 // {2D7B7F30-4B5F-4380-9807-57D7A2E37F6C}
-static const GUID	guid = { 0x2d7b7f30, 0x4b5f, 0x4380, { 0x98, 0x7, 0x57, 0xd7, 0xa2, 0xe3, 0x7f, 0x6c } };
+// static const GUID	guid = { 0x2d7b7f30, 0x4b5f, 0x4380, { 0x98, 0x7, 0x57, 0xd7, 0xa2, 0xe3, 0x7f, 0x6c } };
 
 // Forward declarations of functions included in this code module:
 VOID				HandlingTrayIcon();

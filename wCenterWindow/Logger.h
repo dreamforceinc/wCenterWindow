@@ -5,13 +5,13 @@
 // Usage: LOG_TO_FILE(L"%s(%d): Log message", TEXT(__FUNCTION__), __LINE__);
 //
 #pragma once
-#include "framework.h"
+#include "globals.h"
+#include "wCenterWindow.h"
 
-#define DBUFLEN 256
 #define LOG_TO_FILE(fmt, ...) do { StringCchPrintfW(debugBuffer, DBUFLEN, fmt, ##__VA_ARGS__); logfile << GetTimeStamp() << debugBuffer << std::endl; } while (0)
 
 SYSTEMTIME lt;
-wchar_t debugTimeBuffer[32];
+wchar_t debugTimeBuffer[TBUFLEN];
 wchar_t debugBuffer[DBUFLEN];
 std::wofstream logfile;
 
@@ -20,7 +20,7 @@ extern wchar_t szTitle[];
 wchar_t* GetTimeStamp()
 {
 	GetLocalTime(&lt);
-	StringCchPrintfW(debugTimeBuffer, 32, L"%d-%02d-%02d %02d:%02d:%02d.%03d | ", lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
+	StringCchPrintfW(debugTimeBuffer, TBUFLEN, L"%d-%02d-%02d %02d:%02d:%02d.%03d | ", lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
 	return debugTimeBuffer;
 }
 

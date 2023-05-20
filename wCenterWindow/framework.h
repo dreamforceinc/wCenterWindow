@@ -17,7 +17,3 @@
 // Project Specific Header Files
 #include "logger.h"
 #include "VersionInfo.h"
-
-// Extern variables
-#define MAX_LOADSTRING 50
-WCHAR szTitle[MAX_LOADSTRING];          // wCenterWindow's title

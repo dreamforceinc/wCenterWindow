@@ -7,6 +7,7 @@
 // TODO: Make x64 version.
 //
 #include "framework.h"
+#include "globals.h"
 #include "logger.h"
 #include "wCenterWindow.h"
 
@@ -20,7 +21,7 @@
 
 // Global variables:
 HINSTANCE			hInst;									// Instance
-extern WCHAR		szTitle[];
+WCHAR				szTitle[MAX_LOADSTRING];				// wCenterWindow's title
 WCHAR				szClass[MAX_LOADSTRING];				// Window's class
 WCHAR				szWinTitle[256];
 WCHAR				szWinClass[256];

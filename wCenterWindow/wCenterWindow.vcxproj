@@ -194,6 +194,7 @@
     <ClInclude Include="wCenterWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="logger.cpp" />
     <ClCompile Include="wCenterWindow.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -3,7 +3,6 @@
 // 
 // TODO: Licensing.
 // TODO: Change keyboard low-level hook to RegisterHotKey function.
-// TODO: Add check for updates.
 // TODO: Make x64 version.
 //
 #include "framework.h"

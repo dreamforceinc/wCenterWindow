@@ -1,7 +1,6 @@
 // wCenterWindow
 // logger.cpp
 //
-#include "wCenterWindow.h"
 #include "globals.h"
 #include "logger.h"
 

@@ -8,8 +8,8 @@
 //
 #include "framework.h"
 #include "globals.h"
-#include "wCenterWindow.h"
 #include "logger.h"
+#include "updater.h"
 
 #define NO_DONATION
 #define KEY_I 0x49
@@ -25,7 +25,7 @@ WCHAR				szTitle[MAX_LOADSTRING];				// wCenterWindow's title
 WCHAR				szClass[MAX_LOADSTRING];				// Window's class
 WCHAR				szWinTitle[256];
 WCHAR				szWinClass[256];
-HANDLE				hHeap = NULL;
+HANDLE				hHeap = NULL, hUpdater = NULL;
 HHOOK				hMouseHook = NULL, hKbdHook = NULL;		// Hook's handles
 HICON				hIcon = NULL;
 HMENU				hMenu = NULL, hPopup = NULL;
@@ -39,6 +39,7 @@ LPKBDLLHOOKSTRUCT	pkhs = { 0 };
 MENUITEMINFO		mii = { 0 };
 
 LPVOID				szBuffer;
+CRITICAL_SECTION	cs;
 
 // {2D7B7F30-4B5F-4380-9807-57D7A2E37F6C}
 // static const GUID	guid = { 0x2d7b7f30, 0x4b5f, 0x4380, { 0x98, 0x7, 0x57, 0xd7, 0xa2, 0xe3, 0x7f, 0x6c } };
@@ -92,11 +93,12 @@ VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 	int x = (aw - nWidth) / 2;
 	int y = (ah - nHeight) / 2;
 
+	LOG_TO_FILE(L"%s(%d): Moving the window to %d, %d", TEXT(__FUNCTION__), __LINE__, x, y);
+
 	SendMessageW(hwnd, WM_ENTERSIZEMOVE, NULL, NULL);
 	MoveWindow(hwnd, x, y, nWidth, nHeight, TRUE);
 	SendMessageW(hwnd, WM_EXITSIZEMOVE, NULL, NULL);
 
-	LOG_TO_FILE(L"%s(%d): Moving the window to %d, %d", TEXT(__FUNCTION__), __LINE__, x, y);
 	LOG_TO_FILE(L"Exit from the %s() function", TEXT(__FUNCTION__));
 }
 
@@ -113,9 +115,20 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		return FALSE;
 	}
 
+	InitializeCriticalSection(&cs);
 	OpenLogFile(szTitle, TEXT(VERSION_STR));
 
 	LOG_TO_FILE(L"Entering the %s() function", TEXT(__FUNCTION__));
+
+	hUpdater = CreateThread(NULL, 0, &Updater, nullptr, 0, nullptr);
+	if (NULL == hUpdater)
+	{
+		DWORD dwLastError = GetLastError();
+		LOG_TO_FILE(L"%s(%d): Creating Updater thread failed! Error: %d", TEXT(__FUNCTION__), __LINE__, dwLastError);
+		MessageBoxW(NULL, L"Creating Updater thread failed!", szTitle, MB_OK | MB_ICONERROR);
+		CloseLogFile();
+		return dwLastError;
+	}
 
 	WNDCLASSEX wcex = { 0 };
 	wcex.cbSize = sizeof(WNDCLASSEX);
@@ -182,8 +195,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	LOG_TO_FILE(L"Exit from the %s() function, msg.wParam = %d", TEXT(__FUNCTION__), (int)msg.wParam);
 
-	CloseLogFile();
 	HeapFree(hHeap, NULL, szBuffer);
+	CloseHandle(hUpdater);
+	CloseLogFile();
+	DeleteCriticalSection(&cs);
 
 	return (int)msg.wParam;
 }
@@ -303,6 +318,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			LOG_TO_FILE(L"%s(%d): Recieved the WM_QUERYENDSESSION message, lParam = 0x%08X", TEXT(__FUNCTION__), __LINE__, (long)lParam);
 
 			CloseLogFile();
+			DeleteCriticalSection(&cs);
 			return TRUE;
 			break;
 		}

@@ -15,7 +15,7 @@ If some windows does not centers you should run wCenterWindow with administrativ
 ## Automatic startup
 
 Usually, to start the application when Windows starts, it is enough to put the application's shortcut in the "Startup" folder -\
-"C:\Users\[*Your user name*]\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup". (The easiest way to get there - press 'WIN + R' and type 'shell:startup').\
+"C:\Users\\<*Your user name*>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup". (The easiest way to get there - press 'WIN + R' and type 'shell:startup').\
 However, in this case wCenterWindow will not be able to work with windows that are open with elevated privileges.
 And if you enable the "Run as administrator" option in the shortcut, then wCenterWindow will not start. This is related to the security of Windows (maybe only in 10/11, I did not check).\
 This behavior can be bypassed by creating a task in the Task Scheduler with the "Run with highest privileges" option.\

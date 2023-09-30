@@ -19,8 +19,10 @@
 #define IDS_ERR_MENU                    117
 #define IDS_ERR_POPUP                   118
 #define IDS_ERR_HOOK                    119
-#define IDS_ERR_MAXMIN                  120
-#define IDS_RUNNING                     121
+#define IDS_ERR_TIMER                   120
+#define IDS_ERR_MAXMIN                  121
+#define IDS_RUNNING                     122
+#define IDT_TIMER                       123
 #define IDR_MAINFRAME                   128
 #define IDD_MANUAL_EDITING              129
 #define IDC_EDIT_X                      1000
@@ -48,6 +50,6 @@
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         32771
 #define _APS_NEXT_CONTROL_VALUE         1015
-#define _APS_NEXT_SYMED_VALUE           122
+#define _APS_NEXT_SYMED_VALUE           124
 #endif
 #endif

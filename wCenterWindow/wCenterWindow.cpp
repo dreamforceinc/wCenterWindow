@@ -236,10 +236,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			if (fCheckUpdates)
 			{
-				if (!SetTimer(hWnd, IDT_TIMER, 20000, NULL))
+				if (!SetTimer(hWnd, IDT_TIMER, 20000, NULL))	// 20 seconds
 				{
 					LOG_TO_FILE(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
 					ShowError(IDS_ERR_TIMER);
+					fCheckUpdates = FALSE;
 				}
 				LOG_TO_FILE(L"%s(%d): Timer successfully created", TEXT(__FUNCTION__), __LINE__);
 			}
@@ -272,24 +273,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			if (fCheckUpdates)
 			{
+				Sleep(10000);	// 10 seconds
+
 				LOG_TO_FILE(L"%s(%d): Checking for updates is enabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
 
-				Sleep(10000);
 				hUpdater = CreateThread(NULL, 0, &Updater, nullptr, 0, nullptr);
 				if (NULL == hUpdater)
 				{
 					DWORD dwLastError = GetLastError();
 					LOG_TO_FILE(L"%s(%d): Creating Updater thread failed! Error: %d", TEXT(__FUNCTION__), __LINE__, dwLastError);
-					//MessageBoxW(NULL, L"Creating Updater thread failed!", szTitle, MB_OK | MB_ICONERROR);
-					//fCheckUpdates = FALSE;
 				}
 				else
 				{
-					//if (!SetTimer(hWnd, IDT_TIMER, 1200000, NULL))
-					if (!SetTimer(hWnd, IDT_TIMER, 86390000, NULL))
+					if (!SetTimer(hWnd, IDT_TIMER, 86390000, NULL))	// 1 day - 10 seconds
 					{
 						LOG_TO_FILE(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
 						ShowError(IDS_ERR_TIMER);
+						fCheckUpdates = FALSE;
 					}
 					LOG_TO_FILE(L"%s(%d): Timer successfully created", TEXT(__FUNCTION__), __LINE__);
 				}

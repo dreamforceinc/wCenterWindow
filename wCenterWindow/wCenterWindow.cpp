@@ -29,7 +29,7 @@ HHOOK				hMouseHook = NULL, hKbdHook = NULL;		// Hook's handles
 HICON				hIcon = NULL;
 HMENU				hMenu = NULL, hPopup = NULL;
 HWND				hWnd = NULL, hFgWnd = NULL;
-BOOL				bKPressed = FALSE, bMPressed = FALSE, bShowIcon = TRUE, bWorkArea = TRUE;
+BOOL				bKPressed = FALSE, bMPressed = FALSE, fShowIcon = TRUE, fCheckUpdates = TRUE, bWorkArea = TRUE;
 BOOL				bLCTRL = FALSE, bLWIN = FALSE, bKEYV = FALSE;
 
 NOTIFYICONDATAW		nid = { 0 };
@@ -117,14 +117,40 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	LOG_TO_FILE(L"Entering the %s() function", TEXT(__FUNCTION__));
 
-	hUpdater = CreateThread(NULL, 0, &Updater, nullptr, 0, nullptr);
-	if (NULL == hUpdater)
+	int nArgs = 0;
+	LPWSTR* szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+
+	LOG_TO_FILE(L"Arguments count: %d", nArgs - 1);
+
+	if (nArgs > 1)
 	{
-		DWORD dwLastError = GetLastError();
-		LOG_TO_FILE(L"%s(%d): Creating Updater thread failed! Error: %d", TEXT(__FUNCTION__), __LINE__, dwLastError);
-		MessageBoxW(NULL, L"Creating Updater thread failed!", szTitle, MB_OK | MB_ICONERROR);
-		CloseLogFile();
-		return dwLastError;
+		for (int i = 1; i < nArgs; i++)
+		{
+			LOG_TO_FILE(L"Argument %d: %s", i, szArglist[i]);
+			if (0 == lstrcmpiW(szArglist[i], L"/hide")) fShowIcon = FALSE;
+			if (0 == lstrcmpiW(szArglist[i], L"/noupdate")) fCheckUpdates = FALSE;
+		}
+
+	}
+	LocalFree(szArglist);
+
+	if (fCheckUpdates)
+	{
+		LOG_TO_FILE(L"%s(%d): Checking for updates is enabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
+
+		hUpdater = CreateThread(NULL, 0, &Updater, nullptr, 0, nullptr);
+		if (NULL == hUpdater)
+		{
+			DWORD dwLastError = GetLastError();
+			LOG_TO_FILE(L"%s(%d): Creating Updater thread failed! Error: %d", TEXT(__FUNCTION__), __LINE__, dwLastError);
+			MessageBoxW(NULL, L"Creating Updater thread failed!", szTitle, MB_OK | MB_ICONERROR);
+			CloseLogFile();
+			return dwLastError;
+		}
+	}
+	else
+	{
+		LOG_TO_FILE(L"%s(%d): Checking for updates is disabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
 	}
 
 	WNDCLASSEX wcex = { 0 };
@@ -150,18 +176,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		return FALSE;
 	}
 
-	int nArgs = 0;
-	LPWSTR* szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
-
-	LOG_TO_FILE(L"Arguments count: %d", nArgs - 1);
-
-	for (int i = 1; i < nArgs; i++)
-	{
-		LOG_TO_FILE(L"Argument %d: %s", i, szArglist[i]);
-	}
-
-	(nArgs >= 2 && 0 == lstrcmpiW(szArglist[1], L"/hide")) ? bShowIcon = FALSE : bShowIcon = TRUE;
-	LocalFree(szArglist);
 	HandlingTrayIcon();
 
 	hHeap = GetProcessHeap();
@@ -278,7 +292,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				{
 					LOG_TO_FILE(L"%s(%d): Pressed the 'Hide icon' menuitem", TEXT(__FUNCTION__), __LINE__);
 
-					bShowIcon = FALSE;
+					fShowIcon = FALSE;
 					HandlingTrayIcon();
 				}
 				if (ID_POPUPMENU_AREA == idMenu)
@@ -330,9 +344,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		default:
 			return DefWindowProcW(hWnd, message, wParam, lParam);
-	}
+		}
 	return 0;
-}
+	}
 
 LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
@@ -370,7 +384,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 			LOG_TO_FILE(L"%s(%d): Pressed LCTRL + LWIN + I", TEXT(__FUNCTION__), __LINE__);
 
 			bKPressed = TRUE;
-			bShowIcon = !bShowIcon;
+			fShowIcon = !fShowIcon;
 			HandlingTrayIcon();
 			return TRUE;
 		}
@@ -519,9 +533,9 @@ BOOL IsWindowApprooved(HWND hFW)
 
 VOID HandlingTrayIcon()
 {
-	LOG_TO_FILE(L"Entering the %s() function, bShowIcon = %s", TEXT(__FUNCTION__), bShowIcon ? L"True" : L"False");
+	LOG_TO_FILE(L"Entering the %s() function, fShowIcon = %s", TEXT(__FUNCTION__), fShowIcon ? L"True" : L"False");
 
-	if (bShowIcon)
+	if (fShowIcon)
 	{
 		bool bResult1 = Shell_NotifyIconW(NIM_ADD, &nid);
 		LOG_TO_FILE(L"%s(%d): Shell_NotifyIconW(NIM_ADD): %s", TEXT(__FUNCTION__), __LINE__, bResult1 ? L"True" : L"False");
@@ -535,7 +549,7 @@ VOID HandlingTrayIcon()
 
 			ShowError(IDS_ERR_ICON);
 			Shell_NotifyIconW(NIM_DELETE, &nid);
-			bShowIcon = FALSE;
+			fShowIcon = FALSE;
 		}
 		else
 		{

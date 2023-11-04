@@ -32,9 +32,7 @@ HWND				hWnd = NULL, hFgWnd = NULL;
 BOOL				bKPressed = FALSE, bMPressed = FALSE, bShowIcon = TRUE, bWorkArea = TRUE;
 BOOL				bLCTRL = FALSE, bLWIN = FALSE, bKEYV = FALSE;
 
-RECT				rcFW = { 0 };
 NOTIFYICONDATAW		nid = { 0 };
-LPKBDLLHOOKSTRUCT	pkhs = { 0 };
 MENUITEMINFO		mii = { 0 };
 
 LPVOID				szBuffer;
@@ -353,7 +351,8 @@ LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	pkhs = (KBDLLHOOKSTRUCT*)lParam;
+	LPKBDLLHOOKSTRUCT	pkhs = { 0 };
+	pkhs = (LPKBDLLHOOKSTRUCT)lParam;
 	if (WM_KEYUP == wParam)
 	{
 		if (VK_LCONTROL == pkhs->vkCode) bLCTRL = FALSE;
@@ -410,6 +409,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 {
+	RECT rcFW = { 0 };
 	int x, y, w, h;
 	switch (dlgmsg)
 	{

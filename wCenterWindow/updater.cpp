@@ -5,6 +5,7 @@
 #include "logger.h"
 #include "updater.h"
 #include "picojson.h"
+#include <cwctype>
 
 #define GITHUB_URL TEXT("api.github.com")
 #define GITHUB_URI TEXT("/repos/dreamforceinc/wCenterWindow/releases/latest")
@@ -78,7 +79,9 @@ DWORD WINAPI Updater(LPVOID)
 		return 103;
 	}
 
-	std::wstring gh_version = j_tag_name.substr(1);
+	size_t pos = 0;
+	while (std::iswdigit(j_tag_name.at(pos)) == 0) pos++;
+	std::wstring gh_version = j_tag_name.substr(pos);
 
 	LOG_TO_FILE(L"[UPDT] %s(%d): AppVersion : %s", TEXT(__FUNCTION__), __LINE__, TEXT(VERSION_STR));
 	LOG_TO_FILE(L"[UPDT] %s(%d): GitVersion : %s", TEXT(__FUNCTION__), __LINE__, gh_version.c_str());

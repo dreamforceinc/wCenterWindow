@@ -16,7 +16,7 @@
 #define KEY_V 0x56
 
 #define BUF_LEN 1024
-#define WM_WCW	0x8F00
+#define WM_WCW (WM_APP + 0x0F00)
 
 // Global variables:
 HINSTANCE			hInst;									// Instance
@@ -134,25 +134,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	}
 	LocalFree(szArglist);
 
-	if (fCheckUpdates)
-	{
-		LOG_TO_FILE(L"%s(%d): Checking for updates is enabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
-
-		hUpdater = CreateThread(NULL, 0, &Updater, nullptr, 0, nullptr);
-		if (NULL == hUpdater)
-		{
-			DWORD dwLastError = GetLastError();
-			LOG_TO_FILE(L"%s(%d): Creating Updater thread failed! Error: %d", TEXT(__FUNCTION__), __LINE__, dwLastError);
-			MessageBoxW(NULL, L"Creating Updater thread failed!", szTitle, MB_OK | MB_ICONERROR);
-			CloseLogFile();
-			return dwLastError;
-		}
-	}
-	else
-	{
-		LOG_TO_FILE(L"%s(%d): Checking for updates is disabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
-	}
-
 	WNDCLASSEX wcex = { 0 };
 	wcex.cbSize = sizeof(WNDCLASSEX);
 	wcex.lpfnWndProc = WndProc;
@@ -254,6 +235,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
 			StringCchCopyW(nid.szTip, _countof(nid.szTip), szTitle);
 
+			if (fCheckUpdates)
+			{
+				if (!SetTimer(hWnd, IDT_TIMER, 20000, NULL))
+				{
+					LOG_TO_FILE(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
+					ShowError(IDS_ERR_TIMER);
+				}
+				LOG_TO_FILE(L"%s(%d): Timer successfully created", TEXT(__FUNCTION__), __LINE__);
+			}
+
 #ifndef _DEBUG
 			hMouseHook = SetWindowsHookExW(WH_MOUSE_LL, MouseHookProc, hInst, NULL);
 			if (!hMouseHook)
@@ -275,6 +266,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			LOG_TO_FILE(L"%s(%d): The keyboard hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
+			break;
+		}
+
+		case WM_TIMER:
+		{
+			if (fCheckUpdates)
+			{
+				LOG_TO_FILE(L"%s(%d): Checking for updates is enabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
+
+				Sleep(10000);
+				hUpdater = CreateThread(NULL, 0, &Updater, nullptr, 0, nullptr);
+				if (NULL == hUpdater)
+				{
+					DWORD dwLastError = GetLastError();
+					LOG_TO_FILE(L"%s(%d): Creating Updater thread failed! Error: %d", TEXT(__FUNCTION__), __LINE__, dwLastError);
+				}
+				else
+				{
+					if (!SetTimer(hWnd, IDT_TIMER, 86390000, NULL))
+					{
+						LOG_TO_FILE(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
+						ShowError(IDS_ERR_TIMER);
+					}
+					LOG_TO_FILE(L"%s(%d): Timer successfully created", TEXT(__FUNCTION__), __LINE__);
+				}
+			}
+			else
+			{
+				LOG_TO_FILE(L"%s(%d): Checking for updates is disabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
+			}
 			break;
 		}
 
@@ -342,11 +363,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 
-		default:
-			return DefWindowProcW(hWnd, message, wParam, lParam);
-		}
-	return 0;
+		default: return DefWindowProcW(hWnd, message, wParam, lParam);
 	}
+	return 0;
+}
 
 LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
@@ -450,6 +470,7 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 		}
 
 		case WM_COMMAND:
+		{
 			switch (LOWORD(wParam))
 			{
 				case IDC_BUTTON_SET:
@@ -478,8 +499,9 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 					break;
 				}
 			}
+		}
+		return FALSE;
 	}
-	return FALSE;
 }
 
 BOOL IsWindowApprooved(HWND hFW)

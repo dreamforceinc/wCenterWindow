@@ -108,7 +108,6 @@ DWORD WINAPI Updater(LPVOID)
 	else
 	{
 		LOG_TO_FILE(L"[UPDT] %s(%d): No updates is available", TEXT(__FUNCTION__), __LINE__);
-		return 104;
 	}
 
 	LOG_TO_FILE(L"[UPDT] Exit from the %s() function", TEXT(__FUNCTION__));

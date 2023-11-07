@@ -25,6 +25,7 @@ WCHAR				szClass[MAX_LOADSTRING];				// Window's class
 WCHAR				szWinTitle[256];
 WCHAR				szWinClass[256];
 HANDLE				hHeap = NULL, hUpdater = NULL;
+UINT				dwUpdaterID = 0;
 HHOOK				hMouseHook = NULL, hKbdHook = NULL;		// Hook's handles
 HICON				hIcon = NULL;
 HMENU				hMenu = NULL, hPopup = NULL;
@@ -278,7 +279,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				LOG_TO_FILE(L"%s(%d): Checking for updates is enabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
 
-				hUpdater = CreateThread(NULL, 0, &Updater, nullptr, 0, nullptr);
+				//hUpdater = CreateThread(NULL, 0, &Updater, nullptr, 0, nullptr);
+				hUpdater = (HANDLE)_beginthreadex(NULL, 0, &Updater, NULL, 0, &dwUpdaterID);
 				if (NULL == hUpdater)
 				{
 					DWORD dwLastError = GetLastError();

@@ -26,7 +26,8 @@ void FillVersionStructure(Version& ver, const std::wstring& str);
 std::vector<std::wstring> Split(const std::wstring& s, wchar_t delim);
 std::wstring ConvertUtf8ToWide(const std::string& str);
 
-DWORD WINAPI Updater(LPVOID)
+//DWORD WINAPI Updater(LPVOID)
+UINT WINAPI Updater(LPVOID)
 {
 	LOG_TO_FILE(L"Entering the %s() function", TEXT(__FUNCTION__));
 
@@ -115,7 +116,8 @@ DWORD WINAPI Updater(LPVOID)
 
 	LOG_TO_FILE(L"[UPDT] Exit from the %s() function", TEXT(__FUNCTION__));
 
-	return 0;
+	//return 0;
+	_endthreadex(0);
 }
 
 bool GetLatestRelease(const std::wstring& urn)

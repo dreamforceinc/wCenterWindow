@@ -15,6 +15,7 @@
 #include <wininet.h>
 #include <shellapi.h>
 #include <CommCtrl.h>
+#include <process.h>
 
 // VerionInfo header file
 #include "VersionInfo.h"

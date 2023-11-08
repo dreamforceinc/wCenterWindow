@@ -390,7 +390,7 @@ LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	LPKBDLLHOOKSTRUCT	pkhs = { 0 };
+	LPKBDLLHOOKSTRUCT pkhs = { 0 };
 	pkhs = (LPKBDLLHOOKSTRUCT)lParam;
 	if (WM_KEYUP == wParam)
 	{
@@ -504,9 +504,10 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 					break;
 				}
 			}
+			break;
 		}
-		return FALSE;
 	}
+	return FALSE;
 }
 
 BOOL IsWindowApprooved(HWND hFW)

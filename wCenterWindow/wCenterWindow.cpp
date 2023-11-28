@@ -28,7 +28,7 @@ UINT				dwUpdaterID = 0;
 HHOOK				hMouseHook = NULL, hKbdHook = NULL;												// Hook's handles
 HICON				hIcon = NULL;
 HMENU				hMenu = NULL, hPopup = NULL;
-HWND				hWnd = NULL, hFgWnd = NULL;
+HWND				hFgWnd = NULL;
 BOOL				bKPressed = FALSE, bMPressed = FALSE, fShowIcon = TRUE, fCheckUpdates = TRUE, bWorkArea = TRUE;
 BOOL				bLCTRL = FALSE, bLWIN = FALSE, bKEYV = FALSE;
 CLogger				logger(TEXT(PRODUCT_NAME), TEXT(VERSION_STR));
@@ -109,7 +109,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (FindWindowW(szClass, NULL))
 	{
 		ShowError(IDS_RUNNING);
-		return FALSE;
+		return -5;
 	}
 
 	logger.Out(L"Entering the %s() function", TEXT(__FUNCTION__));
@@ -144,14 +144,14 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!RegisterClassExW(&wcex))
 	{
 		ShowError(IDS_ERR_CLASS);
-		return FALSE;
+		return -4;
 	}
 
-	hWnd = CreateWindowExW(0, szClass, szTitle, 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
-	if (!hWnd)
+	HWND hMainWnd = CreateWindowExW(0, szClass, szTitle, 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
+	if (!hMainWnd)
 	{
 		ShowError(IDS_ERR_WND);
-		return FALSE;
+		return -3;
 	}
 
 	HandlingTrayIcon();
@@ -161,7 +161,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (nullptr == szWinTitleBuffer)
 	{
 		ShowError(IDS_ERR_HEAP);
-		return FALSE;
+		return -2;
 	}
 
 	MSG msg;
@@ -195,7 +195,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	return (int)msg.wParam;
 }
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
@@ -227,7 +227,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
 
 			nid.cbSize = sizeof(NOTIFYICONDATAW);
-			nid.hWnd = hWnd;
+			nid.hWnd = hMainWnd;
 			nid.uVersion = NOTIFYICON_VERSION;
 			nid.uCallbackMessage = WM_WCW;
 			nid.hIcon = hIcon;
@@ -237,7 +237,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			if (fCheckUpdates)
 			{
-				if (!SetTimer(hWnd, IDT_TIMER, 30000, NULL))										// 30 seconds
+				if (!SetTimer(hMainWnd, IDT_TIMER, 30000, NULL))										// 30 seconds
 				{
 					logger.Out(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
 					ShowError(IDS_ERR_TIMER);
@@ -284,7 +284,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				else
 				{
-					if (!SetTimer(hWnd, IDT_TIMER, 86400000, NULL))									// 1 day
+					if (!SetTimer(hMainWnd, IDT_TIMER, 86400000, NULL))									// 1 day
 					{
 						logger.Out(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
 						ShowError(IDS_ERR_TIMER);
@@ -306,10 +306,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				logger.Out(L"%s(%d): Entering the WM_WCW message handler", TEXT(__FUNCTION__), __LINE__);
 
-				SetForegroundWindow(hWnd);
+				SetForegroundWindow(hMainWnd);
 				POINT pt;
 				GetCursorPos(&pt);
-				int idMenu = TrackPopupMenu(hPopup, TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, NULL);
+				int idMenu = TrackPopupMenu(hPopup, TPM_RETURNCMD, pt.x, pt.y, 0, hMainWnd, NULL);
 				if (ID_POPUPMENU_ICON == idMenu)
 				{
 					logger.Out(L"%s(%d): Pressed the 'Hide icon' menuitem", TEXT(__FUNCTION__), __LINE__);
@@ -331,7 +331,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					logger.Out(L"%s(%d): Pressed the 'About' menuitem", TEXT(__FUNCTION__), __LINE__);
 
 					bKPressed = TRUE;
-					DialogBoxW(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, (DLGPROC)About);
+					DialogBoxW(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hMainWnd, (DLGPROC)About);
 					bKPressed = FALSE;
 				}
 				if (ID_POPUPMENU_EXIT == idMenu)
@@ -363,7 +363,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 
-		default: return DefWindowProcW(hWnd, message, wParam, lParam);
+		default: return DefWindowProcW(hMainWnd, message, wParam, lParam);
 	}
 	return 0;
 }

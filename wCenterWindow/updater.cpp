@@ -1,8 +1,7 @@
 // wCenterWindow
 // updater.h
 //
-#include "globals.h"
-#include "logger.h"
+#include "wCenterWindow.h"
 #include "updater.h"
 #include "picojson.h"
 #include <cwctype>
@@ -11,14 +10,13 @@
 #define GITHUB_URI TEXT("/repos/dreamforceinc/wCenterWindow/releases/latest")
 
 picojson::value json;
-WCHAR errMessageBuffer[DBUFLEN]{ 0 };
 
 struct Version
 {
 	UINT Major = 0;
 	UINT Minor = 0;
 	UINT Build = 0;
-	UINT Revision = 0;
+	UINT Patch = 0;
 } verApp, verGh;
 
 bool GetLatestRelease(const std::wstring& urn);
@@ -26,7 +24,6 @@ void FillVersionStructure(Version& ver, const std::wstring& str);
 std::vector<std::wstring> Split(const std::wstring& s, wchar_t delim);
 std::wstring ConvertUtf8ToWide(const std::string& str);
 
-//DWORD WINAPI Updater(LPVOID)
 UINT WINAPI Updater(LPVOID)
 {
 	logger.Out(L"Entering the %s() function", TEXT(__FUNCTION__));
@@ -34,8 +31,9 @@ UINT WINAPI Updater(LPVOID)
 	if (!GetLatestRelease(GITHUB_URI))
 	{
 		logger.Out(L"[UPDT] %s(%d): Failed getting releases!", TEXT(__FUNCTION__), __LINE__);
-		StringCchPrintfW(errMessageBuffer, DBUFLEN, L"Failed getting releases!");
-		MessageBoxW(NULL, errMessageBuffer, szTitle, MB_OK | MB_ICONERROR);
+
+		MessageBoxW(NULL, L"Failed getting releases!", szTitle, MB_OK | MB_ICONERROR);
+		_endthreadex(101);
 		return 101;
 	}
 
@@ -54,6 +52,7 @@ UINT WINAPI Updater(LPVOID)
 		{
 			std::string u = (*it).second.get<std::string>();
 			logger.Out(L"[UPDT] %s(%d): Error! The url is %s", TEXT(__FUNCTION__), __LINE__, u);
+			_endthreadex(102);
 			return 102;
 		}
 
@@ -77,6 +76,7 @@ UINT WINAPI Updater(LPVOID)
 	else
 	{
 		logger.Out(L"[UPDT] %s(%d): Error! Cannot recognize JSON object!", TEXT(__FUNCTION__), __LINE__);
+		_endthreadex(103);
 		return 103;
 	}
 
@@ -94,7 +94,7 @@ UINT WINAPI Updater(LPVOID)
 	FillVersionStructure(verApp, TEXT(VERSION_STR));
 	FillVersionStructure(verGh, gh_version);
 
-	if ((verGh.Major > verApp.Major) || (verGh.Minor > verApp.Minor) || (verGh.Build > verApp.Build) || (verGh.Revision > verApp.Revision))
+	if ((verGh.Major > verApp.Major) || (verGh.Minor > verApp.Minor) || (verGh.Build > verApp.Build) || (verGh.Patch > verApp.Patch))
 	{
 
 		logger.Out(L"[UPDT] %s(%d): An update is available!", TEXT(__FUNCTION__), __LINE__);
@@ -116,8 +116,8 @@ UINT WINAPI Updater(LPVOID)
 
 	logger.Out(L"[UPDT] Exit from the %s() function", TEXT(__FUNCTION__));
 
-	//return 0;
 	_endthreadex(0);
+	return 0;
 }
 
 bool GetLatestRelease(const std::wstring& urn)
@@ -127,6 +127,8 @@ bool GetLatestRelease(const std::wstring& urn)
 	const std::wstring url = GITHUB_URL;
 	bool ret = true;
 	DWORD err = 0;
+
+	logger.Out(L"[UPDT] %s(%d): %s", TEXT(__FUNCTION__), __LINE__, user_agent.c_str());
 
 	HINTERNET hInternet = InternetOpenW(user_agent.c_str(), INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 	if (hInternet != NULL)
@@ -208,7 +210,7 @@ void FillVersionStructure(Version& ver, const std::wstring& str)
 	ver.Major = std::stoul(v[0]);
 	ver.Minor = std::stoul(v[1]);
 	ver.Build = std::stoul(v[2]);
-	ver.Revision = std::stoul(v[3]);
+	ver.Patch = std::stoul(v[3]);
 }
 
 std::wstring ConvertUtf8ToWide(const std::string& str)

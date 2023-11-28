@@ -7,7 +7,7 @@
 //
 #include "framework.h"
 #include "wCenterWindow.h"
-//#include "updater.h"
+#include "updater.h"
 
 #define NO_DONATION
 #define KEY_I 0x49

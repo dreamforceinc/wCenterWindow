@@ -23,7 +23,7 @@ WCHAR				szTitle[MAX_LOADSTRING]{ 0 };													// wCenterWindow's title
 WCHAR				szClass[MAX_LOADSTRING]{ 0 };													// Window's class
 WCHAR				szWinTitle[256]{ 0 };
 WCHAR				szWinClass[256]{ 0 };
-HANDLE				hHeap = NULL, hUpdater = NULL;
+HANDLE				hUpdater = NULL;
 UINT				dwUpdaterID = 0;
 HHOOK				hMouseHook = NULL, hKbdHook = NULL;												// Hook's handles
 HICON				hIcon = NULL;
@@ -156,7 +156,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	HandlingTrayIcon();
 
-	hHeap = GetProcessHeap();
+	HANDLE hHeap = GetProcessHeap();
 	szWinTitleBuffer = HeapAlloc(hHeap, HEAP_ZERO_MEMORY, MAX_WINTITLE_BUFFER_LENGTH);
 	if (nullptr == szWinTitleBuffer)
 	{

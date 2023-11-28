@@ -2,10 +2,11 @@
 // CLogger.cpp
 #include "CLogger.h"
 #include <filesystem>
+#include <strsafe.h>
 
 inline wchar_t* CLogger::GetTimeStamp() {
 	GetLocalTime(&lt);
-	swprintf_s(logTimeBuffer, L"%d-%02d-%02d %02d:%02d:%02d.%03d | ", lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
+	StringCchPrintfW(logTimeBuffer, _countof(logTimeBuffer), L"%d-%02d-%02d %02d:%02d:%02d.%03d | ", lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds);
 	return logTimeBuffer;
 }
 
@@ -14,7 +15,7 @@ void CLogger::Out(const wchar_t* fmt, ...) {
 		va_list args;
 		va_start(args, fmt);
 		EnterCriticalSection(&cs);
-		_vsnwprintf_s(logBuffer, _countof(logBuffer), _TRUNCATE, fmt, args);
+		StringCchVPrintfW(logBuffer, _countof(logBuffer), fmt, args);
 		va_end(args);
 		fsLogFile << GetTimeStamp() << logBuffer << std::endl;
 		LeaveCriticalSection(&cs);

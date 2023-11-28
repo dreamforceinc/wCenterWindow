@@ -155,7 +155,9 @@ bool GetLatestRelease(const std::wstring& urn)
 					std::string jerr = picojson::get_last_error();
 					if (!jerr.empty())
 					{
-						std::cout << jerr << std::endl;
+						logger.Out(L"[UPDT] %s(%d): Error while parsing JSON object: %s", TEXT(__FUNCTION__), __LINE__, ConvertUtf8ToWide(jerr));
+
+						MessageBoxW(NULL, L"Error while parsing JSON object!", szTitle, MB_OK | MB_ICONERROR);
 						ret = false;
 					}
 

@@ -14,18 +14,18 @@
 #define KEY_C 0x43
 #define KEY_V 0x56
 
-#define BUF_LEN 1024
+#define MAX_WINTITLE_BUFFER_LENGTH 1024
 #define WM_WCW (WM_APP + 0x0F00)
 
 // Global variables:
-HINSTANCE			hInst;									// Instance
-WCHAR				szTitle[MAX_LOADSTRING];				// wCenterWindow's title
-WCHAR				szClass[MAX_LOADSTRING];				// Window's class
-WCHAR				szWinTitle[256];
-WCHAR				szWinClass[256];
+HINSTANCE			hInst;																			// Instance
+WCHAR				szTitle[MAX_LOADSTRING]{ 0 };													// wCenterWindow's title
+WCHAR				szClass[MAX_LOADSTRING]{ 0 };													// Window's class
+WCHAR				szWinTitle[256]{ 0 };
+WCHAR				szWinClass[256]{ 0 };
 HANDLE				hHeap = NULL, hUpdater = NULL;
 UINT				dwUpdaterID = 0;
-HHOOK				hMouseHook = NULL, hKbdHook = NULL;		// Hook's handles
+HHOOK				hMouseHook = NULL, hKbdHook = NULL;												// Hook's handles
 HICON				hIcon = NULL;
 HMENU				hMenu = NULL, hPopup = NULL;
 HWND				hWnd = NULL, hFgWnd = NULL;
@@ -157,7 +157,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	HandlingTrayIcon();
 
 	hHeap = GetProcessHeap();
-	szBuffer = HeapAlloc(hHeap, HEAP_ZERO_MEMORY, BUF_LEN);
+	szBuffer = HeapAlloc(hHeap, HEAP_ZERO_MEMORY, MAX_WINTITLE_BUFFER_LENGTH);
 
 	MSG msg;
 	BOOL bRet;
@@ -204,7 +204,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				logger.Out(L"%s(%d): Loading context menu failed!", TEXT(__FUNCTION__), __LINE__);
 				ShowError(IDS_ERR_MENU);
 				PostQuitMessage(0);
-				//PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			logger.Out(L"%s(%d): Context menu successfully loaded", TEXT(__FUNCTION__), __LINE__);
 
@@ -214,7 +213,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				logger.Out(L"%s(%d): Creating popup menu failed!", TEXT(__FUNCTION__), __LINE__);
 				ShowError(IDS_ERR_POPUP);
 				PostQuitMessage(0);
-				//PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			logger.Out(L"%s(%d): Popup menu successfully created", TEXT(__FUNCTION__), __LINE__);
 
@@ -234,7 +232,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			if (fCheckUpdates)
 			{
-				if (!SetTimer(hWnd, IDT_TIMER, 20000, NULL))	// 20 seconds
+				if (!SetTimer(hWnd, IDT_TIMER, 20000, NULL))										// 20 seconds
 				{
 					logger.Out(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
 					ShowError(IDS_ERR_TIMER);
@@ -251,7 +249,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				ShowError(IDS_ERR_HOOK);
 				PostQuitMessage(0);
-				//PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			logger.Out(L"%s(%d): The mouse hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
 #endif // !_DEBUG
@@ -263,7 +260,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				ShowError(IDS_ERR_HOOK);
 				PostQuitMessage(0);
-				//PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			logger.Out(L"%s(%d): The keyboard hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
 			break;
@@ -273,11 +269,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			if (fCheckUpdates)
 			{
-				Sleep(10000);	// 10 seconds
+				Sleep(10000);																		// 10 seconds
 
 				logger.Out(L"%s(%d): Checking for updates is enabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
 
-				//hUpdater = CreateThread(NULL, 0, &Updater, nullptr, 0, nullptr);
 				//hUpdater = (HANDLE)_beginthreadex(NULL, 0, &Updater, NULL, 0, &dwUpdaterID);
 				if (NULL == hUpdater)
 				{
@@ -286,7 +281,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				else
 				{
-					if (!SetTimer(hWnd, IDT_TIMER, 86390000, NULL))	// 1 day - 10 seconds
+					if (!SetTimer(hWnd, IDT_TIMER, 86390000, NULL))									// 1 day - 10 seconds
 					{
 						logger.Out(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
 						ShowError(IDS_ERR_TIMER);
@@ -302,7 +297,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 
-		case WM_WCW:			// Popup menu handler
+		case WM_WCW:																				// Popup menu handler
 		{
 			if (IDI_TRAYICON == wParam && (WM_RBUTTONDOWN == lParam || WM_LBUTTONDOWN == lParam))
 			{
@@ -341,7 +336,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					logger.Out(L"%s(%d): Pressed the 'Exit' menuitem", TEXT(__FUNCTION__), __LINE__);
 
 					PostQuitMessage(0);
-					//PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 				}
 
 				logger.Out(L"%s(%d): Exit from the WM_WCW message handler", TEXT(__FUNCTION__), __LINE__);
@@ -402,7 +396,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 		if (VK_LCONTROL == pkhs->vkCode) bLCTRL = TRUE;
 		if (VK_LWIN == pkhs->vkCode) bLWIN = TRUE;
 
-		if (KEY_I == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed)	// 'I' key
+		if (KEY_I == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed)									// 'I' key
 		{
 			logger.Out(L"%s(%d): Pressed LCTRL + LWIN + I", TEXT(__FUNCTION__), __LINE__);
 
@@ -412,7 +406,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 			return TRUE;
 		}
 
-		if (KEY_C == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed && !bKEYV)	// 'C' key
+		if (KEY_C == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed && !bKEYV)						// 'C' key
 		{
 			logger.Out(L"%s(%d): Pressed LCTRL + LWIN + C", TEXT(__FUNCTION__), __LINE__);
 
@@ -423,7 +417,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 			return TRUE;
 		}
 
-		if (KEY_V == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed && !bKEYV)	// 'V' key
+		if (KEY_V == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed && !bKEYV)						// 'V' key
 		{
 			logger.Out(L"%s(%d): Pressed LCTRL + LWIN + V", TEXT(__FUNCTION__), __LINE__);
 
@@ -515,7 +509,7 @@ BOOL IsWindowApprooved(HWND hFW)
 	bool bApprooved = FALSE;
 	if (hFW)
 	{
-		if (GetWindowTextW(hFW, (LPWSTR)szBuffer, BUF_LEN - sizeof(WCHAR)))
+		if (GetWindowTextW(hFW, (LPWSTR)szBuffer, MAX_WINTITLE_BUFFER_LENGTH))
 		{
 			logger.Out(L"%s(%d): Window title: '%s'", TEXT(__FUNCTION__), __LINE__, (LPWSTR)szBuffer);
 		}
@@ -592,7 +586,7 @@ VOID HandlingTrayIcon()
 
 VOID ShowError(UINT uID)
 {
-	WCHAR szErrorText[MAX_LOADSTRING]; // Error's text
+	WCHAR szErrorText[MAX_LOADSTRING];																// Error's text
 	LoadStringW(hInst, uID, szErrorText, _countof(szErrorText));
 	MessageBoxW(NULL, szErrorText, szTitle, MB_OK | MB_ICONERROR | MB_TOPMOST);
 }

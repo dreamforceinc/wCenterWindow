@@ -40,7 +40,7 @@ function makeVersionString([string]$vmaj, [string]$vmin, [string]$vbld, [string]
 }
 
 #region Initializing variables
-[string]$verMajor = [string]$verMinor = [string]$verBuild = [string]$verRevision = $null
+[string]$verMajor = [string]$verMinor = [string]$verBuild = [string]$verPatch = $null
 [string]$pn = [string]$pa = [string]$aboutBuild = [string]$pnf = [string]$pcf = $null
 [string]$buildDateTime = [string]$vs = [string]$vn = [string]$intName = [string]$origName = $null
 [int]$pys = [int]$spanDays = [int]$spanSecs = $null
@@ -80,7 +80,7 @@ $config = (Get-IniContent -FilePath $iniFile)["Config"]
 $verMajor = $config.Major
 $verMinor = $config.Minor
 $verBuild = $config.Build
-$verRevision = $config.Revision
+$verPatch = $config.Patch
 $pys = $config.ProductYearStart
 $pn = $config.ProductName
 $pa = $config.ProductAutors
@@ -109,11 +109,11 @@ $origName = "$pn.exe"
 $verMajor = getValue $verMajor
 $verMinor = getValue $verMinor
 $verBuild = getValue $verBuild
-$verRevision = getValue $verRevision
+$verPatch = getValue $verPatch
 #endregion
 
-$vs = (makeVersionString $verMajor $verMinor $verBuild $verRevision)[0]
-$vn = (makeVersionString $verMajor $verMinor $verBuild $verRevision)[1]
+$vs = (makeVersionString $verMajor $verMinor $verBuild $verPatch)[0]
+$vn = (makeVersionString $verMajor $verMinor $verBuild $verPatch)[1]
 
 # if ([string]::IsNullOrEmpty($gitVerStr)) { $pnf = "$pn v$vs" } else { $pnf = "$pn $gitVerStr" }
 if ($isGit) {
@@ -154,7 +154,7 @@ else {
 # echo "            verMajor: [$verMajor]"
 # echo "            verMinor: [$verMinor]"
 # echo "            verBuild: [$verBuild]"
-# echo "         verRevision: [$verRevision]"
+# echo "            verPatch: [$verPatch]"
 # echo ""
 # echo "          aboutBuild: [$aboutBuild]"
 # echo "     productNameFull: [$pnf]"

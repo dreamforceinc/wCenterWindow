@@ -203,7 +203,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				logger.Out(L"%s(%d): Loading context menu failed!", TEXT(__FUNCTION__), __LINE__);
 				ShowError(IDS_ERR_MENU);
-				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
+				PostQuitMessage(0);
+				//PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			logger.Out(L"%s(%d): Context menu successfully loaded", TEXT(__FUNCTION__), __LINE__);
 
@@ -212,7 +213,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				logger.Out(L"%s(%d): Creating popup menu failed!", TEXT(__FUNCTION__), __LINE__);
 				ShowError(IDS_ERR_POPUP);
-				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
+				PostQuitMessage(0);
+				//PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			logger.Out(L"%s(%d): Popup menu successfully created", TEXT(__FUNCTION__), __LINE__);
 
@@ -248,7 +250,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				logger.Out(L"%s(%d): Mouse hook creation failed!", TEXT(__FUNCTION__), __LINE__);
 
 				ShowError(IDS_ERR_HOOK);
-				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
+				PostQuitMessage(0);
+				//PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			logger.Out(L"%s(%d): The mouse hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
 #endif // !_DEBUG
@@ -259,7 +262,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				logger.Out(L"%s(%d): Keyboard hook creation failed!", TEXT(__FUNCTION__), __LINE__);
 
 				ShowError(IDS_ERR_HOOK);
-				PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
+				PostQuitMessage(0);
+				//PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 			}
 			logger.Out(L"%s(%d): The keyboard hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
 			break;
@@ -336,7 +340,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				{
 					logger.Out(L"%s(%d): Pressed the 'Exit' menuitem", TEXT(__FUNCTION__), __LINE__);
 
-					PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
+					PostQuitMessage(0);
+					//PostMessageW(hWnd, WM_CLOSE, NULL, NULL);
 				}
 
 				logger.Out(L"%s(%d): Exit from the WM_WCW message handler", TEXT(__FUNCTION__), __LINE__);

@@ -7,7 +7,7 @@
 //
 #include "framework.h"
 #include "wCenterWindow.h"
-#include "updater.h"
+//#include "updater.h"
 
 #define NO_DONATION
 #define KEY_I 0x49
@@ -274,7 +274,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				logger.Out(L"%s(%d): Checking for updates is enabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
 
 				//hUpdater = CreateThread(NULL, 0, &Updater, nullptr, 0, nullptr);
-				hUpdater = (HANDLE)_beginthreadex(NULL, 0, &Updater, NULL, 0, &dwUpdaterID);
+				//hUpdater = (HANDLE)_beginthreadex(NULL, 0, &Updater, NULL, 0, &dwUpdaterID);
 				if (NULL == hUpdater)
 				{
 					DWORD dwLastError = GetLastError();

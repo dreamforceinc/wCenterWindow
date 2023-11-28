@@ -191,12 +191,10 @@
     <ClInclude Include="picojson.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="updater.h" />
     <ClInclude Include="wCenterWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CLogger.cpp" />
-    <ClCompile Include="updater.cpp" />
     <ClCompile Include="wCenterWindow.cpp" />
   </ItemGroup>
   <ItemGroup>

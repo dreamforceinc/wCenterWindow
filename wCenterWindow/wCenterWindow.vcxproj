@@ -186,9 +186,8 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CLogger.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="globals.h" />
-    <ClInclude Include="logger.h" />
     <ClInclude Include="picojson.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="targetver.h" />
@@ -196,7 +195,7 @@
     <ClInclude Include="wCenterWindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="logger.cpp" />
+    <ClCompile Include="CLogger.cpp" />
     <ClCompile Include="updater.cpp" />
     <ClCompile Include="wCenterWindow.cpp" />
   </ItemGroup>

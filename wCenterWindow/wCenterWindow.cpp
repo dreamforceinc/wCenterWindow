@@ -36,7 +36,7 @@ CLogger				logger(TEXT(PRODUCT_NAME), TEXT(VERSION_STR));
 NOTIFYICONDATAW		nid = { 0 };
 MENUITEMINFO		mii = { 0 };
 
-LPVOID				szBuffer;
+LPVOID				szWinTitleBuffer = nullptr;
 
 // {2D7B7F30-4B5F-4380-9807-57D7A2E37F6C}
 // static const GUID	guid = { 0x2d7b7f30, 0x4b5f, 0x4380, { 0x98, 0x7, 0x57, 0xd7, 0xa2, 0xe3, 0x7f, 0x6c } };
@@ -157,7 +157,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	HandlingTrayIcon();
 
 	hHeap = GetProcessHeap();
-	szBuffer = HeapAlloc(hHeap, HEAP_ZERO_MEMORY, MAX_WINTITLE_BUFFER_LENGTH);
+	szWinTitleBuffer = HeapAlloc(hHeap, HEAP_ZERO_MEMORY, MAX_WINTITLE_BUFFER_LENGTH);
+	if (nullptr == szWinTitleBuffer)
+	{
+		ShowError(IDS_ERR_HEAP);
+		return FALSE;
+	}
 
 	MSG msg;
 	BOOL bRet;
@@ -182,9 +187,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	Shell_NotifyIconW(NIM_DELETE, &nid);
 	DestroyIcon(hIcon);
 
-	logger.Out(L"Exit from the %s() function, msg.wParam = %d", TEXT(__FUNCTION__), (int)msg.wParam);
+	logger.Out(L"Exit from the %s() function, msg.wParam = 0x%08X", TEXT(__FUNCTION__), (int)msg.wParam);
 
-	HeapFree(hHeap, NULL, szBuffer);
+	HeapFree(hHeap, NULL, szWinTitleBuffer);
 	CloseHandle(hUpdater);
 
 	return (int)msg.wParam;
@@ -502,14 +507,14 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 
 BOOL IsWindowApprooved(HWND hFW)
 {
-	logger.Out(L"Entering the %s() function, handle = 0x%08X", TEXT(__FUNCTION__), hFW);
+	logger.Out(L"Entering the %s() function", TEXT(__FUNCTION__));
 
 	bool bApprooved = FALSE;
 	if (hFW)
 	{
-		if (GetWindowTextW(hFW, (LPWSTR)szBuffer, MAX_WINTITLE_BUFFER_LENGTH))
+		if (GetWindowTextW(hFW, (LPWSTR)szWinTitleBuffer, MAX_WINTITLE_BUFFER_LENGTH))
 		{
-			logger.Out(L"%s(%d): Window title: '%s'", TEXT(__FUNCTION__), __LINE__, (LPWSTR)szBuffer);
+			logger.Out(L"%s(%d): Window handle: 0x%08X. Title: '%s'", TEXT(__FUNCTION__), __LINE__, hFW, (LPWSTR)szWinTitleBuffer);
 		}
 
 		if (IsIconic(hFW))

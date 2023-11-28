@@ -232,7 +232,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			if (fCheckUpdates)
 			{
-				if (!SetTimer(hWnd, IDT_TIMER, 20000, NULL))										// 20 seconds
+				if (!SetTimer(hWnd, IDT_TIMER, 30000, NULL))										// 30 seconds
 				{
 					logger.Out(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
 					ShowError(IDS_ERR_TIMER);
@@ -269,11 +269,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			if (fCheckUpdates)
 			{
-				Sleep(10000);																		// 10 seconds
-
 				logger.Out(L"%s(%d): Checking for updates is enabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
 
-				//hUpdater = (HANDLE)_beginthreadex(NULL, 0, &Updater, NULL, 0, &dwUpdaterID);
+				hUpdater = (HANDLE)_beginthreadex(NULL, 0, &Updater, NULL, 0, &dwUpdaterID);
 				if (NULL == hUpdater)
 				{
 					DWORD dwLastError = GetLastError();
@@ -281,7 +279,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				else
 				{
-					if (!SetTimer(hWnd, IDT_TIMER, 86390000, NULL))									// 1 day - 10 seconds
+					if (!SetTimer(hWnd, IDT_TIMER, 86400000, NULL))									// 1 day
 					{
 						logger.Out(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
 						ShowError(IDS_ERR_TIMER);

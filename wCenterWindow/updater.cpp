@@ -29,11 +29,11 @@ std::wstring ConvertUtf8ToWide(const std::string& str);
 //DWORD WINAPI Updater(LPVOID)
 UINT WINAPI Updater(LPVOID)
 {
-	LOG_TO_FILE(L"Entering the %s() function", TEXT(__FUNCTION__));
+	logger.Out(L"Entering the %s() function", TEXT(__FUNCTION__));
 
 	if (!GetLatestRelease(GITHUB_URI))
 	{
-		LOG_TO_FILE(L"[UPDT] %s(%d): Failed getting releases!", TEXT(__FUNCTION__), __LINE__);
+		logger.Out(L"[UPDT] %s(%d): Failed getting releases!", TEXT(__FUNCTION__), __LINE__);
 		StringCchPrintfW(errMessageBuffer, DBUFLEN, L"Failed getting releases!");
 		MessageBoxW(NULL, errMessageBuffer, szTitle, MB_OK | MB_ICONERROR);
 		return 101;
@@ -46,14 +46,14 @@ UINT WINAPI Updater(LPVOID)
 
 	if (json.is<picojson::object>())
 	{
-		LOG_TO_FILE(L"[UPDT] %s(%d): Parsing JSON object", TEXT(__FUNCTION__), __LINE__);
+		logger.Out(L"[UPDT] %s(%d): Parsing JSON object", TEXT(__FUNCTION__), __LINE__);
 
 		obj = json.get<picojson::object>();
 		it = obj.find("message"), it2;
 		if (it != obj.end())
 		{
 			std::string u = (*it).second.get<std::string>();
-			LOG_TO_FILE(L"[UPDT] %s(%d): Error! The url is %s", TEXT(__FUNCTION__), __LINE__, u);
+			logger.Out(L"[UPDT] %s(%d): Error! The url is %s", TEXT(__FUNCTION__), __LINE__, u);
 			return 102;
 		}
 
@@ -76,7 +76,7 @@ UINT WINAPI Updater(LPVOID)
 	}
 	else
 	{
-		LOG_TO_FILE(L"[UPDT] %s(%d): Error! Cannot recognize JSON object!", TEXT(__FUNCTION__), __LINE__);
+		logger.Out(L"[UPDT] %s(%d): Error! Cannot recognize JSON object!", TEXT(__FUNCTION__), __LINE__);
 		return 103;
 	}
 
@@ -84,12 +84,12 @@ UINT WINAPI Updater(LPVOID)
 	while (std::iswdigit(j_tag_name.at(pos)) == 0) pos++;
 	std::wstring gh_version = j_tag_name.substr(pos);
 
-	LOG_TO_FILE(L"[UPDT] %s(%d): AppVersion : %s", TEXT(__FUNCTION__), __LINE__, TEXT(VERSION_STR));
-	LOG_TO_FILE(L"[UPDT] %s(%d): GitVersion : %s", TEXT(__FUNCTION__), __LINE__, gh_version.c_str());
-	//LOG_TO_FILE(L"[UPDT] %s(%d):   FileName : %s", TEXT(__FUNCTION__), __LINE__, j_file_name.c_str());
-	//LOG_TO_FILE(L"[UPDT] %s(%d):   FileSize : %d", TEXT(__FUNCTION__), __LINE__, j_file_size);
-	//LOG_TO_FILE(L"[UPDT] %s(%d):   File Url : %s", TEXT(__FUNCTION__), __LINE__, j_file_url.c_str());
-	//LOG_TO_FILE(L"[UPDT] %s(%d):   Page Url : %s", TEXT(__FUNCTION__), __LINE__, j_page_url.c_str());
+	logger.Out(L"[UPDT] %s(%d): AppVersion : %s", TEXT(__FUNCTION__), __LINE__, TEXT(VERSION_STR));
+	logger.Out(L"[UPDT] %s(%d): GitVersion : %s", TEXT(__FUNCTION__), __LINE__, gh_version.c_str());
+	//logger.Out(L"[UPDT] %s(%d):   FileName : %s", TEXT(__FUNCTION__), __LINE__, j_file_name.c_str());
+	//logger.Out(L"[UPDT] %s(%d):   FileSize : %d", TEXT(__FUNCTION__), __LINE__, j_file_size);
+	//logger.Out(L"[UPDT] %s(%d):   File Url : %s", TEXT(__FUNCTION__), __LINE__, j_file_url.c_str());
+	//logger.Out(L"[UPDT] %s(%d):   Page Url : %s", TEXT(__FUNCTION__), __LINE__, j_page_url.c_str());
 
 	FillVersionStructure(verApp, TEXT(VERSION_STR));
 	FillVersionStructure(verGh, gh_version);
@@ -97,24 +97,24 @@ UINT WINAPI Updater(LPVOID)
 	if ((verGh.Major > verApp.Major) || (verGh.Minor > verApp.Minor) || (verGh.Build > verApp.Build) || (verGh.Revision > verApp.Revision))
 	{
 
-		LOG_TO_FILE(L"[UPDT] %s(%d): An update is available!", TEXT(__FUNCTION__), __LINE__);
+		logger.Out(L"[UPDT] %s(%d): An update is available!", TEXT(__FUNCTION__), __LINE__);
 
 		if (IDYES == MessageBoxW(NULL, L"An update is available!\nDo you want to open the download page?", szTitle, MB_YESNO | MB_ICONINFORMATION))
 		{
-			LOG_TO_FILE(L"[UPDT] %s(%d): Opening download page by default browser", TEXT(__FUNCTION__), __LINE__);
+			logger.Out(L"[UPDT] %s(%d): Opening download page by default browser", TEXT(__FUNCTION__), __LINE__);
 			ShellExecuteW(NULL, L"open", j_page_url.c_str(), NULL, NULL, SW_SHOW);
 		}
 		else
 		{
-			LOG_TO_FILE(L"[UPDT] %s(%d): The user refused the update", TEXT(__FUNCTION__), __LINE__);
+			logger.Out(L"[UPDT] %s(%d): The user refused the update", TEXT(__FUNCTION__), __LINE__);
 		}
 	}
 	else
 	{
-		LOG_TO_FILE(L"[UPDT] %s(%d): No updates is available", TEXT(__FUNCTION__), __LINE__);
+		logger.Out(L"[UPDT] %s(%d): No updates is available", TEXT(__FUNCTION__), __LINE__);
 	}
 
-	LOG_TO_FILE(L"[UPDT] Exit from the %s() function", TEXT(__FUNCTION__));
+	logger.Out(L"[UPDT] Exit from the %s() function", TEXT(__FUNCTION__));
 
 	//return 0;
 	_endthreadex(0);
@@ -161,14 +161,14 @@ bool GetLatestRelease(const std::wstring& urn)
 				else
 				{
 					err = GetLastError();
-					LOG_TO_FILE(L"[UPDT] %s(%d): HttpSendRequestW() error: %d", TEXT(__FUNCTION__), __LINE__, err);
+					logger.Out(L"[UPDT] %s(%d): HttpSendRequestW() error: %d", TEXT(__FUNCTION__), __LINE__, err);
 					ret = false;
 				}
 			}
 			else
 			{
 				err = GetLastError();
-				LOG_TO_FILE(L"[UPDT] %s(%d): HttpOpenRequestW() error: %d", TEXT(__FUNCTION__), __LINE__, err);
+				logger.Out(L"[UPDT] %s(%d): HttpOpenRequestW() error: %d", TEXT(__FUNCTION__), __LINE__, err);
 				ret = false;
 			}
 			InternetCloseHandle(hRequest);
@@ -176,7 +176,7 @@ bool GetLatestRelease(const std::wstring& urn)
 		else
 		{
 			err = GetLastError();
-			LOG_TO_FILE(L"[UPDT] %s(%d): InternetConnectW() error: %d", TEXT(__FUNCTION__), __LINE__, err);
+			logger.Out(L"[UPDT] %s(%d): InternetConnectW() error: %d", TEXT(__FUNCTION__), __LINE__, err);
 			ret = false;
 		}
 		InternetCloseHandle(hConnect);
@@ -184,7 +184,7 @@ bool GetLatestRelease(const std::wstring& urn)
 	else
 	{
 		err = GetLastError();
-		LOG_TO_FILE(L"[UPDT] %s(%d): InternetOpenW() error: %d", TEXT(__FUNCTION__), __LINE__, err);
+		logger.Out(L"[UPDT] %s(%d): InternetOpenW() error: %d", TEXT(__FUNCTION__), __LINE__, err);
 		ret = false;
 	}
 	InternetCloseHandle(hInternet);

@@ -12,6 +12,8 @@ public:
 	void Out(const wchar_t*, ...);
 	CLogger(const wchar_t*);
 	CLogger(const wchar_t*, const wchar_t*);
+	CLogger(const wchar_t*, const uint8_t);
+	CLogger(const wchar_t*, const wchar_t*, const uint8_t);
 	~CLogger();
 
 private:
@@ -24,6 +26,7 @@ private:
 	std::wofstream fsLogFile;
 	std::wstring szAppTitle{ 0 };
 	std::wstring szAppVersion{ 0 };
+	std::wstring szAppPlatform{ 0 };
 	std::wstring szAppTitleVer{ 0 };
 
 	inline wchar_t* GetTimeStamp();

@@ -8,6 +8,12 @@
 #define T1 60
 #define T2 86400
 
+#ifdef _WIN64
+#define ARCH 64
+#else
+#define ARCH 86
+#endif
+
 #define MAX_LOADSTRING 50
 
 // Windows Header Files

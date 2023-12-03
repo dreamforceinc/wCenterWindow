@@ -27,14 +27,17 @@ std::wstring ConvertUtf8ToWide(const std::string& str);
 UINT WINAPI Updater(LPVOID)
 {
 	logger.Out(L"Entering the %s() function", TEXT(__FUNCTION__));
+	logger.Out(L"[UPDT] Sleeping %d seconds", T0);
+
+	Sleep(T0 * 1000);																				// 10 seconds
 
 	if (!GetLatestRelease(GITHUB_URI))
 	{
 		logger.Out(L"[UPDT] %s(%d): Failed getting releases!", TEXT(__FUNCTION__), __LINE__);
 
 		MessageBoxW(NULL, L"Failed getting releases!", szTitle, MB_OK | MB_ICONERROR);
-		_endthreadex(101);
 		return 101;
+		_endthreadex(101);
 	}
 
 	std::wstring j_tag_name, j_file_name, j_file_ext, j_file_url, j_page_url;
@@ -52,8 +55,8 @@ UINT WINAPI Updater(LPVOID)
 		{
 			std::string u = (*it).second.get<std::string>();
 			logger.Out(L"[UPDT] %s(%d): Error! The url is %s", TEXT(__FUNCTION__), __LINE__, u);
-			_endthreadex(102);
 			return 102;
+			_endthreadex(102);
 		}
 
 		for (it = obj.begin(); it != obj.end(); it++)
@@ -76,8 +79,8 @@ UINT WINAPI Updater(LPVOID)
 	else
 	{
 		logger.Out(L"[UPDT] %s(%d): Error! Cannot recognize JSON object!", TEXT(__FUNCTION__), __LINE__);
-		_endthreadex(103);
 		return 103;
+		_endthreadex(103);
 	}
 
 	size_t pos = 0;
@@ -116,8 +119,8 @@ UINT WINAPI Updater(LPVOID)
 
 	logger.Out(L"[UPDT] Exit from the %s() function", TEXT(__FUNCTION__));
 
-	_endthreadex(0);
 	return 0;
+	_endthreadex(0);
 }
 
 bool GetLatestRelease(const std::wstring& urn)

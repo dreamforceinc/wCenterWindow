@@ -237,13 +237,13 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 
 			if (fCheckUpdates)
 			{
-				if (!SetTimer(hMainWnd, IDT_TIMER, 30000, NULL))										// 30 seconds
+				if (!SetTimer(hMainWnd, IDT_TIMER, (T1 * 1000 - T0 * 1000), NULL))					// 50 seconds
 				{
 					logger.Out(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
 					ShowError(IDS_ERR_TIMER);
 					fCheckUpdates = FALSE;
 				}
-				logger.Out(L"%s(%d): Timer successfully created", TEXT(__FUNCTION__), __LINE__);
+				logger.Out(L"%s(%d): Timer successfully created (%d sec)", TEXT(__FUNCTION__), __LINE__, (T1 - T0));
 			}
 
 #ifndef _DEBUG
@@ -284,13 +284,13 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 				}
 				else
 				{
-					if (!SetTimer(hMainWnd, IDT_TIMER, 86400000, NULL))									// 1 day
+					if (!SetTimer(hMainWnd, IDT_TIMER, (T2 * 1000), NULL))							// 1 day
 					{
 						logger.Out(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
 						ShowError(IDS_ERR_TIMER);
 						fCheckUpdates = FALSE;
 					}
-					logger.Out(L"%s(%d): Timer successfully created", TEXT(__FUNCTION__), __LINE__);
+					logger.Out(L"%s(%d): Timer successfully created (%d sec)", TEXT(__FUNCTION__), __LINE__, T2);
 				}
 			}
 			else

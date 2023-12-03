@@ -4,6 +4,10 @@
 #pragma once
 #include "resource.h"
 
+#define T0 10
+#define T1 60
+#define T2 86400
+
 #define MAX_LOADSTRING 50
 
 // Windows Header Files

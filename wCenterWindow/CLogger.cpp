@@ -46,7 +46,6 @@ void CLogger::Out(const wchar_t* fmt, ...) {
 }
 
 void CLogger::Init() {
-	InitializeCriticalSection(&cs);
 	wchar_t szPath[MAX_PATH] = { 0 };
 	DWORD dwPathLength = GetModuleFileNameW(NULL, szPath, MAX_PATH);
 	DWORD dwError = GetLastError();
@@ -70,6 +69,7 @@ void CLogger::Init() {
 #endif
 	fsLogFile.open(log_path, std::ios::trunc);
 	if (fsLogFile.is_open()) {
+		InitializeCriticalSection(&cs);
 		fsLogFile << "\xEF\xBB\xBF";																// (0xEF, 0xBB, 0xBF) - UTF-8 BOM
 		fsLogFile.imbue(std::locale("en-US.utf8"));
 		fsLogFile << GetTimeStamp() << "[ " << szAppTitleVer.c_str() << " ] Start log." << std::endl;

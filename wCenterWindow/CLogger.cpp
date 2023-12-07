@@ -24,6 +24,7 @@
 // CLogger.cpp
 
 #include "CLogger.h"
+#include <string>
 #include <filesystem>
 #include <strsafe.h>
 
@@ -83,13 +84,6 @@ void CLogger::Init() {
 CLogger::CLogger(const wchar_t* _appTitle) {
 	szAppTitle = _appTitle;
 	szAppTitleVer = _appTitle;
-	Init();
-}
-
-CLogger::CLogger(const wchar_t* _appTitle, const wchar_t* _appVersion) {
-	szAppTitle = _appTitle; szAppVersion = _appVersion;
-	szAppTitleVer = _appTitle;
-	szAppTitleVer.append(L", v").append(_appVersion);
 	Init();
 }
 

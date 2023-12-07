@@ -45,6 +45,7 @@ function makeVersionString([string]$vmaj, [string]$vmin, [string]$vbld, [string]
 [string]$buildDateTime = [string]$vs = [string]$vn = [string]$intName = [string]$origName = $null
 [int]$pys = [int]$spanDays = [int]$spanSecs = $null
 [int]$currentYear = [int]$currentMonth = [int]$currentDay = [int]$currentHour = [int]$currentMinute = [int]$currentSecond = $null
+[string]$platformArch = $args[0]
 [string]$iniFile = ".\Version.ini"
 #endregion
 
@@ -103,8 +104,8 @@ $currentSecond = $date.Second
 $buildDateTime = "Build date: $($date.GetDateTimeFormats('u').Replace('Z', ''))"
 $spanDays = [math]::Round((New-TimeSpan -Start $(Get-Date -Month 1 -Day 1 -Year 2000) -End $date).TotalDays)
 $spanSecs = [math]::Round((New-TimeSpan -Start $($date.Date) -End $($date.DateTime)).TotalSeconds)
-if ($pys -eq $currentYear) { $pcf = "Copyright (C) $pys by $pa" } else { $pcf = "Copyright (C) $pys-$currentYear by $pa" }
-$intName = "$pn-C++"
+if ($pys -eq $currentYear) { $pcf = "Copyright (c) $pys $pa" } else { $pcf = "Copyright (c) $pys-$currentYear $pa" }
+$intName = "$pn-$platformArch-C++"
 $origName = "$pn.exe"
 $verMajor = getValue $verMajor
 $verMinor = getValue $verMinor
@@ -124,6 +125,8 @@ else {
 	$aboutBuild = $buildDateTime
 	$pnf = "$pn v$vs"
 }
+
+$pnf = "$pn v$vs ($platformArch)"
 
 #region Save all variables to file
 "// $pn" | Out-File -FilePath ".\VersionInfo.h" -Encoding unicode
@@ -157,6 +160,7 @@ else {
 # echo "            verPatch: [$verPatch]"
 # echo ""
 # echo "          aboutBuild: [$aboutBuild]"
+# echo "        platformArch: [$platformArch]"
 # echo "     productNameFull: [$pnf]"
 # echo "productCopyrightFull: [$pcf]"
 # echo "        internalName: [$intName]"

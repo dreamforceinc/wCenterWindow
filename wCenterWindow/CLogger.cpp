@@ -64,27 +64,6 @@ CLogger::CLogger(const wchar_t* _appTitle) {
 	Init();
 }
 
-CLogger::CLogger(const wchar_t* _appTitle, const wchar_t* _appVersion) {
-	szAppTitle = _appTitle; szAppVersion = _appVersion;
-	szAppTitleVer = _appTitle;
-	szAppTitleVer.append(L", v").append(_appVersion);
-	Init();
-}
-
-CLogger::CLogger(const wchar_t* _appTitle, const uint8_t _appPlatform) {
-	szAppTitle = _appTitle; szAppPlatform = std::to_wstring(_appPlatform);
-	szAppTitleVer = _appTitle;
-	szAppTitleVer.append(L" (x").append(szAppPlatform).append(L")");
-	Init();
-}
-
-CLogger::CLogger(const wchar_t* _appTitle, const wchar_t* _appVersion, const uint8_t _appPlatform) {
-	szAppTitle = _appTitle; szAppVersion = _appVersion; szAppPlatform = std::to_wstring(_appPlatform);
-	szAppTitleVer = _appTitle;
-	szAppTitleVer.append(L", v").append(_appVersion).append(L" (x").append(szAppPlatform).append(L")");
-	Init();
-}
-
 CLogger::~CLogger() {
 	if (fsLogFile) {
 		fsLogFile << GetTimeStamp() << "Stop log." << std::endl;

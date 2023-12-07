@@ -31,10 +31,7 @@ HMENU				hMenu = NULL, hPopup = NULL;
 HWND				hFgWnd = NULL;
 BOOL				bKPressed = FALSE, bMPressed = FALSE, fShowIcon = TRUE, fCheckUpdates = TRUE, bWorkArea = TRUE;
 BOOL				bLCTRL = FALSE, bLWIN = FALSE, bKEYV = FALSE;
-//CLogger				logger(TEXT(PRODUCT_NAME), TEXT(VERSION_STR), ARCH);
-//CLogger				logger(TEXT(PRODUCT_NAME), TEXT(VERSION_STR));
-//CLogger				logger(TEXT(PRODUCT_NAME), ARCH);
-CLogger				logger(TEXT(PRODUCT_NAME));
+CLogger				logger(TEXT(PRODUCT_NAME_FULL));
 
 NOTIFYICONDATAW		nid = { 0 };
 MENUITEMINFO		mii = { 0 };

@@ -11,9 +11,6 @@ class CLogger
 public:
 	void Out(const wchar_t*, ...);
 	CLogger(const wchar_t*);
-	CLogger(const wchar_t*, const wchar_t*);
-	CLogger(const wchar_t*, const uint8_t);
-	CLogger(const wchar_t*, const wchar_t*, const uint8_t);
 	~CLogger();
 
 private:

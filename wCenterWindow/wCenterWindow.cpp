@@ -65,10 +65,10 @@ LPVOID				szWinTitleBuffer = nullptr;
 VOID				HandlingTrayIcon();
 VOID				ShowError(UINT);
 BOOL				IsWindowApprooved(HWND);
-BOOL	CALLBACK	DlgProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	KeyboardHookProc(int, WPARAM, LPARAM);
 LRESULT CALLBACK	MouseHookProc(int, WPARAM, LPARAM);
+INT_PTR	CALLBACK	DlgProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
@@ -207,12 +207,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	Shell_NotifyIconW(NIM_DELETE, &nid);
 	DestroyIcon(hIcon);
 
-	logger.Out(L"Exit from the %s() function, msg.wParam = 0x%08X", TEXT(__FUNCTION__), (int)msg.wParam);
+	logger.Out(L"Exit from the %s() function, msg.wParam = 0x%08X", TEXT(__FUNCTION__), static_cast<int>(msg.wParam));
 
 	HeapFree(hHeap, NULL, szWinTitleBuffer);
 	CloseHandle(hUpdater);
 
-	return (int)msg.wParam;
+	return static_cast<int>(msg.wParam);
 }
 
 LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -296,7 +296,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 			{
 				logger.Out(L"%s(%d): Checking for updates is enabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
 
-				hUpdater = (HANDLE)_beginthreadex(NULL, 0, &Updater, NULL, 0, &dwUpdaterID);
+				hUpdater = reinterpret_cast<HANDLE>(_beginthreadex(NULL, 0, &Updater, NULL, 0, &dwUpdaterID));
 				if (NULL == hUpdater)
 				{
 					DWORD dwLastError = GetLastError();
@@ -351,7 +351,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 					logger.Out(L"%s(%d): Pressed the 'About' menuitem", TEXT(__FUNCTION__), __LINE__);
 
 					bKPressed = TRUE;
-					DialogBoxW(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hMainWnd, (DLGPROC)About);
+					DialogBoxW(hInst, MAKEINTRESOURCEW(IDD_ABOUTBOX), hMainWnd, static_cast<DLGPROC>(About));
 					bKPressed = FALSE;
 				}
 				if (ID_POPUPMENU_EXIT == idMenu)
@@ -368,7 +368,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 
 		case WM_QUERYENDSESSION:
 		{
-			logger.Out(L"%s(%d): Recieved the WM_QUERYENDSESSION message, lParam = 0x%08X", TEXT(__FUNCTION__), __LINE__, (long)lParam);
+			logger.Out(L"%s(%d): Recieved the WM_QUERYENDSESSION message, lParam = 0x%08X", TEXT(__FUNCTION__), __LINE__, static_cast<LONG_PTR>(lParam));
 
 			PostQuitMessage(0);
 			return TRUE;
@@ -406,7 +406,7 @@ LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	LPKBDLLHOOKSTRUCT pkhs = { 0 };
-	pkhs = (LPKBDLLHOOKSTRUCT)lParam;
+	pkhs = reinterpret_cast<LPKBDLLHOOKSTRUCT>(lParam);
 	if (WM_KEYUP == wParam)
 	{
 		if (VK_LCONTROL == pkhs->vkCode) bLCTRL = FALSE;
@@ -450,7 +450,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 			{
 				logger.Out(L"%s(%d): Opening the 'Manual editing' dialog", TEXT(__FUNCTION__), __LINE__);
 
-				DialogBoxW(hInst, MAKEINTRESOURCE(IDD_MANUAL_EDITING), hFgWnd, (DLGPROC)DlgProc);
+				DialogBoxW(hInst, MAKEINTRESOURCEW(IDD_MANUAL_EDITING), hFgWnd, static_cast<DLGPROC>(DlgProc));
 				SetForegroundWindow(hFgWnd);
 			}
 			else hFgWnd = NULL;
@@ -461,7 +461,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 {
 	RECT rcFW = { 0 };
 	int x, y, w, h;
@@ -507,7 +507,7 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 
 					logger.Out(L"%s(%d): Window with handle 0x%08X was moved to %d, %d", TEXT(__FUNCTION__), __LINE__, hFgWnd, x, y);
 
-					return TRUE;
+					return static_cast<INT_PTR>(TRUE);
 					break;
 				}
 				case IDCANCEL:
@@ -522,19 +522,19 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 	}
-	return FALSE;
+	return static_cast<INT_PTR>(FALSE);
 }
 
 BOOL IsWindowApprooved(HWND hFW)
 {
 	logger.Out(L"Entering the %s() function", TEXT(__FUNCTION__));
 
-	bool bApprooved = FALSE;
+	BOOL bApprooved = FALSE;
 	if (hFW)
 	{
-		if (GetWindowTextW(hFW, (LPWSTR)szWinTitleBuffer, MAX_WINTITLE_BUFFER_LENGTH))
+		if (GetWindowTextW(hFW, static_cast<LPWSTR>(szWinTitleBuffer), MAX_WINTITLE_BUFFER_LENGTH))
 		{
-			logger.Out(L"%s(%d): Window handle: 0x%08X. Title: '%s'", TEXT(__FUNCTION__), __LINE__, hFW, (LPWSTR)szWinTitleBuffer);
+			logger.Out(L"%s(%d): Window handle: 0x%08X. Title: '%s'", TEXT(__FUNCTION__), __LINE__, hFW, static_cast<LPWSTR>(szWinTitleBuffer));
 		}
 
 		if (IsIconic(hFW))
@@ -580,10 +580,10 @@ VOID HandlingTrayIcon()
 
 	if (fShowIcon)
 	{
-		bool bResult1 = Shell_NotifyIconW(NIM_ADD, &nid);
+		BOOL bResult1 = Shell_NotifyIconW(NIM_ADD, &nid);
 		logger.Out(L"%s(%d): Shell_NotifyIconW(NIM_ADD): %s", TEXT(__FUNCTION__), __LINE__, bResult1 ? L"True" : L"False");
 
-		bool bResult2 = Shell_NotifyIconW(NIM_SETVERSION, &nid);
+		BOOL bResult2 = Shell_NotifyIconW(NIM_SETVERSION, &nid);
 		logger.Out(L"%s(%d): Shell_NotifyIconW(NIM_SETVERSION): %s", TEXT(__FUNCTION__), __LINE__, bResult2 ? L"True" : L"False");
 
 		if (!bResult1 || !bResult2)
@@ -648,7 +648,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 			logger.Out(L"%s(%d): End of initializing the 'About' dialog", TEXT(__FUNCTION__), __LINE__);
 
-			return (INT_PTR)TRUE;
+			return static_cast<INT_PTR>(TRUE);
 			break;
 		}
 
@@ -663,7 +663,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 				logger.Out(L"%s(%d): Pressed the donation link! :-)", TEXT(__FUNCTION__), __LINE__);
 
-				return (INT_PTR)TRUE;
+				return static_cast<INT_PTR>(TRUE);
 			}
 			break;
 		}
@@ -676,10 +676,10 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 				logger.Out(L"%s(%d): Closing the 'About' dialog", TEXT(__FUNCTION__), __LINE__);
 
-				return (INT_PTR)TRUE;
+				return static_cast<INT_PTR>(TRUE);
 			}
 			break;
 		}
 	}
-	return (INT_PTR)FALSE;
+	return static_cast<INT_PTR>(FALSE);
 }

@@ -39,8 +39,6 @@ public:
 private:
 	SYSTEMTIME lt;
 	CRITICAL_SECTION cs;
-	HANDLE hLoggerThread = NULL;
-	HANDLE hLoggerEvent = NULL;
 	wchar_t logTimeBuffer[28]{ 0 };
 	wchar_t logBuffer[MAX_LOGBUFFER_LENGTH]{ 0 };
 	std::wofstream fsLogFile;

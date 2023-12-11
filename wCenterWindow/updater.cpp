@@ -46,7 +46,7 @@ void FillVersionStructure(Version& ver, const std::wstring& str);
 std::vector<std::wstring> Split(const std::wstring& s, wchar_t delim);
 std::wstring ConvertUtf8ToWide(const std::string& str);
 
-UINT WINAPI Updater(LPVOID)
+UINT WINAPI Updater(void*)
 {
 	logger.Out(L"Entering the %s() function", TEXT(__FUNCTION__));
 	logger.Out(L"[UPDT] Sleeping %d seconds", T0);

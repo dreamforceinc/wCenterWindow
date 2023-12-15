@@ -67,7 +67,7 @@ LRESULT CALLBACK	MouseHookProc(int, WPARAM, LPARAM);
 INT_PTR	CALLBACK	DlgProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
-VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
+static VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 {
 	logger.Out(L"Entering the %s() function", TEXT(__FUNCTION__));
 

@@ -22,8 +22,10 @@
 
 // wCenterWindow
 // wCenterWindow.cpp
+// TODO: Add Help menuitem into popup menu.
+// TODO: Add license info into About dialog.
+// TODO: Fix tray icon that disappears after explorer reboot.
 // TODO: Change keyboard low-level hook to RegisterHotKey function.
-// TODO: Make x64 version.
 
 #include "framework.h"
 #include "wCenterWindow.h"
@@ -38,12 +40,7 @@
 #define WM_WCW (WM_APP + 0x0F00)
 
 // Global variables:
-HINSTANCE			hInst;																			// Instance
 WCHAR				szTitle[MAX_LOADSTRING]{ 0 };													// wCenterWindow's title
-WCHAR				szClass[MAX_LOADSTRING]{ 0 };													// Window's class	// Можно в winmain
-WCHAR				szWinTitle[256]{ 0 };																				// = szWinTitleBuffer
-WCHAR				szWinClass[256]{ 0 };																				// Создать новый буфер lpvoid
-HANDLE				hUpdater = NULL;
 HICON				hIcon = NULL;
 HMENU				hMenu = NULL, hPopup = NULL;
 HWND				hFgWnd = NULL;
@@ -55,6 +52,7 @@ NOTIFYICONDATAW		nid = { 0 };
 MENUITEMINFO		mii = { 0 };
 
 LPVOID				szWinTitleBuffer = nullptr;
+LPVOID				szWinClassBuffer = nullptr;
 
 // {2D7B7F30-4B5F-4380-9807-57D7A2E37F6C}
 // static const GUID	guid = { 0x2d7b7f30, 0x4b5f, 0x4380, { 0x98, 0x7, 0x57, 0xd7, 0xa2, 0xe3, 0x7f, 0x6c } };
@@ -119,7 +117,7 @@ VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
-	hInst = hInstance;
+	WCHAR szClass[MAX_LOADSTRING]{ 0 };																// Window's class
 
 	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, _countof(szTitle));
 	LoadStringW(hInstance, IDS_CLASSNAME, szClass, _countof(szClass));
@@ -127,7 +125,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (FindWindowW(szClass, NULL))
 	{
 		ShowError(IDS_RUNNING, szTitle);
-		return -5;
+		return -8;
 	}
 
 	logger.Out(L"Entering the %s() function", TEXT(__FUNCTION__));
@@ -154,7 +152,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	wcex.lpfnWndProc = WndProc;
 	wcex.hInstance = hInstance;
 	wcex.hIcon = LoadIconW(hInstance, MAKEINTRESOURCE(IDI_TRAYICON));
-	LoadIconMetric(hInst, MAKEINTRESOURCE(IDI_TRAYICON), LIM_LARGE, &(wcex.hIcon));
+	LoadIconMetric(hInstance, MAKEINTRESOURCE(IDI_TRAYICON), LIM_LARGE, &(wcex.hIcon));
 	wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
 	wcex.lpszClassName = szClass;
 	wcex.hIconSm = wcex.hIcon;
@@ -162,43 +160,51 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!RegisterClassExW(&wcex))
 	{
 		ShowError(IDS_ERR_CLASS, szTitle);
-		return -4;
+		return -7;
 	}
 
 	HWND hMainWnd = CreateWindowExW(0, szClass, szTitle, 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
 	if (!hMainWnd)
 	{
 		ShowError(IDS_ERR_WND, szTitle);
-		return -3;
+		return -6;
 	}
 
 #ifndef _DEBUG
-	HHOOK hMouseHook = SetWindowsHookExW(WH_MOUSE_LL, MouseHookProc, hInst, NULL);
+	HHOOK hMouseHook = SetWindowsHookExW(WH_MOUSE_LL, MouseHookProc, GetModuleHandleW(NULL), NULL);
 	if (!hMouseHook)
 	{
 		logger.Out(L"%s(%d): Mouse hook creation failed!", TEXT(__FUNCTION__), __LINE__);
 
 		ShowError(IDS_ERR_HOOK, szTitle);
-		PostQuitMessage(0);
+		return -5;
 	}
 	logger.Out(L"%s(%d): The mouse hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
 #endif // !_DEBUG
 
-	HHOOK hKbdHook = SetWindowsHookExW(WH_KEYBOARD_LL, KeyboardHookProc, hInst, NULL);
+	HHOOK hKbdHook = SetWindowsHookExW(WH_KEYBOARD_LL, KeyboardHookProc, GetModuleHandleW(NULL), NULL);
 	if (!hKbdHook)
 	{
 		logger.Out(L"%s(%d): Keyboard hook creation failed!", TEXT(__FUNCTION__), __LINE__);
 
 		ShowError(IDS_ERR_HOOK, szTitle);
-		PostQuitMessage(0);
+		return -4;
 	}
 	logger.Out(L"%s(%d): The keyboard hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
 
 	HandlingTrayIcon();
 
 	HANDLE hHeap = GetProcessHeap();
+
 	szWinTitleBuffer = HeapAlloc(hHeap, HEAP_ZERO_MEMORY, MAX_WINTITLE_BUFFER_LENGTH);
 	if (nullptr == szWinTitleBuffer)
+	{
+		ShowError(IDS_ERR_HEAP, szTitle);
+		return -3;
+	}
+
+	szWinClassBuffer = HeapAlloc(hHeap, HEAP_ZERO_MEMORY, MAX_WINTITLE_BUFFER_LENGTH);
+	if (nullptr == szWinClassBuffer)
 	{
 		ShowError(IDS_ERR_HEAP, szTitle);
 		return -2;
@@ -221,7 +227,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		}
 	}
 
+#ifndef _DEBUG
 	if (hMouseHook) UnhookWindowsHookEx(hMouseHook);
+#endif // !_DEBUG
 	if (hKbdHook) UnhookWindowsHookEx(hKbdHook);
 	if (hMenu) DestroyMenu(hMenu);
 	Shell_NotifyIconW(NIM_DELETE, &nid);
@@ -230,7 +238,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	logger.Out(L"Exit from the %s() function, msg.wParam = 0x%08X", TEXT(__FUNCTION__), static_cast<int>(msg.wParam));
 
 	HeapFree(hHeap, NULL, szWinTitleBuffer);
-	CloseHandle(hUpdater);
 
 	return static_cast<int>(msg.wParam);
 }
@@ -243,7 +250,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 		{
 			logger.Out(L"%s(%d): Recived WM_CREATE message", TEXT(__FUNCTION__), __LINE__);
 
-			hMenu = LoadMenuW(hInst, MAKEINTRESOURCE(IDR_MENU));
+			hMenu = LoadMenuW(GetModuleHandleW(NULL), MAKEINTRESOURCE(IDR_MENU));
 			if (!hMenu)
 			{
 				logger.Out(L"%s(%d): Loading context menu failed!", TEXT(__FUNCTION__), __LINE__);
@@ -294,7 +301,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 			{
 				logger.Out(L"%s(%d): Checking for updates is enabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
 
-				hUpdater = reinterpret_cast<HANDLE>(_beginthreadex(NULL, 0, &Updater, NULL, 0, NULL));
+				HANDLE hUpdater = reinterpret_cast<HANDLE>(_beginthreadex(NULL, 0, &Updater, NULL, 0, NULL));
 				if (NULL == hUpdater)
 				{
 					DWORD dwLastError = GetLastError();
@@ -309,6 +316,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 						fCheckUpdates = FALSE;
 					}
 					logger.Out(L"%s(%d): Timer successfully created (%d sec)", TEXT(__FUNCTION__), __LINE__, T2);
+					CloseHandle(hUpdater);
 				}
 			}
 			else
@@ -349,7 +357,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 					logger.Out(L"%s(%d): Pressed the 'About' menuitem", TEXT(__FUNCTION__), __LINE__);
 
 					bKPressed = TRUE;
-					DialogBoxW(hInst, MAKEINTRESOURCEW(IDD_ABOUTBOX), hMainWnd, static_cast<DLGPROC>(About));
+					DialogBoxParamW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(IDD_ABOUTBOX), hMainWnd, static_cast<DLGPROC>(About), 0L);
 					bKPressed = FALSE;
 				}
 				if (ID_POPUPMENU_EXIT == idMenu)
@@ -448,7 +456,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 			{
 				logger.Out(L"%s(%d): Opening the 'Manual editing' dialog", TEXT(__FUNCTION__), __LINE__);
 
-				DialogBoxW(hInst, MAKEINTRESOURCEW(IDD_MANUAL_EDITING), hFgWnd, static_cast<DLGPROC>(DlgProc));
+				DialogBoxParamW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(IDD_MANUAL_EDITING), hFgWnd, static_cast<DLGPROC>(DlgProc), 0L);
 				SetForegroundWindow(hFgWnd);
 			}
 			else hFgWnd = NULL;
@@ -470,8 +478,7 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 			logger.Out(L"%s(%d): Initializing the 'Manual editing' dialog", TEXT(__FUNCTION__), __LINE__);
 
 			SetWindowTextW(hDlg, szTitle);
-			GetWindowTextW(hFgWnd, szWinTitle, _countof(szWinTitle));
-			GetClassNameW(hFgWnd, szWinClass, _countof(szWinClass));
+			GetClassNameW(hFgWnd, static_cast<LPWSTR>(szWinClassBuffer), MAX_WINTITLE_BUFFER_LENGTH);
 			GetWindowRect(hFgWnd, &rcFW);
 			x = rcFW.left;
 			y = rcFW.top;
@@ -481,8 +488,8 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 			SetDlgItemInt(hDlg, IDC_EDIT_Y, y, TRUE);
 			SetDlgItemInt(hDlg, IDC_EDIT_WIDTH, w, FALSE);
 			SetDlgItemInt(hDlg, IDC_EDIT_HEIGHT, h, FALSE);
-			SetDlgItemTextW(hDlg, IDC_EDIT_TITLE, szWinTitle);
-			SetDlgItemTextW(hDlg, IDC_EDIT_CLASS, szWinClass);
+			SetDlgItemTextW(hDlg, IDC_EDIT_TITLE, static_cast<LPCWSTR>(szWinTitleBuffer));
+			SetDlgItemTextW(hDlg, IDC_EDIT_CLASS, static_cast<LPCWSTR>(szWinClassBuffer));
 			UpdateWindow(hDlg);
 			break;
 		}
@@ -608,7 +615,7 @@ VOID HandlingTrayIcon()
 VOID ShowError(UINT uID, LPCWSTR szAppTitle)
 {
 	WCHAR szErrorText[MAX_LOADSTRING];																// Error's text
-	LoadStringW(hInst, uID, szErrorText, _countof(szErrorText));
+	LoadStringW(GetModuleHandleW(NULL), uID, szErrorText, _countof(szErrorText));
 	MessageBoxW(NULL, szErrorText, szAppTitle, MB_OK | MB_ICONERROR | MB_TOPMOST);
 }
 
@@ -632,7 +639,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			MultiByteToWideChar(1251, 0, PRODUCT_NAME_FULL, _countof(PRODUCT_NAME_FULL), szAboutProgName, MAX_LOADSTRING);
 			MultiByteToWideChar(1251, 0, PRODUCT_COPYRIGHT, _countof(PRODUCT_COPYRIGHT), szAboutCopyright, MAX_LOADSTRING);
 			MultiByteToWideChar(1251, 0, ABOUT_BUILD, _countof(ABOUT_BUILD), szAboutBuildTime, MAX_LOADSTRING);
-			LoadStringW(hInst, IDS_ABOUT, szAboutHelp, _countof(szAboutHelp));
+			LoadStringW(GetModuleHandleW(NULL), IDS_ABOUT, szAboutHelp, _countof(szAboutHelp));
 			SetDlgItemTextW(hDlg, IDC_ABOUT_PROGNAME, szAboutProgName);
 			SetDlgItemTextW(hDlg, IDC_ABOUT_COPYRIGHT, szAboutCopyright);
 			SetDlgItemTextW(hDlg, IDC_ABOUT_BUILDTIME, szAboutBuildTime);

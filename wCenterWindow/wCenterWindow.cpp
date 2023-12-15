@@ -40,12 +40,10 @@
 // Global variables:
 HINSTANCE			hInst;																			// Instance
 WCHAR				szTitle[MAX_LOADSTRING]{ 0 };													// wCenterWindow's title
-WCHAR				szClass[MAX_LOADSTRING]{ 0 };													// Window's class
-WCHAR				szWinTitle[256]{ 0 };
-WCHAR				szWinClass[256]{ 0 };
+WCHAR				szClass[MAX_LOADSTRING]{ 0 };													// Window's class	// Можно в winmain
+WCHAR				szWinTitle[256]{ 0 };																				// = szWinTitleBuffer
+WCHAR				szWinClass[256]{ 0 };																				// Создать новый буфер lpvoid
 HANDLE				hUpdater = NULL;
-UINT				dwUpdaterID = 0;
-HHOOK				hMouseHook = NULL, hKbdHook = NULL;												// Hook's handles
 HICON				hIcon = NULL;
 HMENU				hMenu = NULL, hPopup = NULL;
 HWND				hFgWnd = NULL;
@@ -174,6 +172,28 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		return -3;
 	}
 
+#ifndef _DEBUG
+	HHOOK hMouseHook = SetWindowsHookExW(WH_MOUSE_LL, MouseHookProc, hInst, NULL);
+	if (!hMouseHook)
+	{
+		logger.Out(L"%s(%d): Mouse hook creation failed!", TEXT(__FUNCTION__), __LINE__);
+
+		ShowError(IDS_ERR_HOOK, szTitle);
+		PostQuitMessage(0);
+	}
+	logger.Out(L"%s(%d): The mouse hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
+#endif // !_DEBUG
+
+	HHOOK hKbdHook = SetWindowsHookExW(WH_KEYBOARD_LL, KeyboardHookProc, hInst, NULL);
+	if (!hKbdHook)
+	{
+		logger.Out(L"%s(%d): Keyboard hook creation failed!", TEXT(__FUNCTION__), __LINE__);
+
+		ShowError(IDS_ERR_HOOK, szTitle);
+		PostQuitMessage(0);
+	}
+	logger.Out(L"%s(%d): The keyboard hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
+
 	HandlingTrayIcon();
 
 	HANDLE hHeap = GetProcessHeap();
@@ -265,28 +285,6 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 				}
 				logger.Out(L"%s(%d): Timer successfully created (%d sec)", TEXT(__FUNCTION__), __LINE__, (T1 - T0));
 			}
-
-#ifndef _DEBUG
-			hMouseHook = SetWindowsHookExW(WH_MOUSE_LL, MouseHookProc, hInst, NULL);
-			if (!hMouseHook)
-			{
-				logger.Out(L"%s(%d): Mouse hook creation failed!", TEXT(__FUNCTION__), __LINE__);
-
-				ShowError(IDS_ERR_HOOK, szTitle);
-				PostQuitMessage(0);
-			}
-			logger.Out(L"%s(%d): The mouse hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
-#endif // !_DEBUG
-
-			hKbdHook = SetWindowsHookExW(WH_KEYBOARD_LL, KeyboardHookProc, hInst, NULL);
-			if (!hKbdHook)
-			{
-				logger.Out(L"%s(%d): Keyboard hook creation failed!", TEXT(__FUNCTION__), __LINE__);
-
-				ShowError(IDS_ERR_HOOK, szTitle);
-				PostQuitMessage(0);
-			}
-			logger.Out(L"%s(%d): The keyboard hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
 			break;
 		}
 
@@ -296,7 +294,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 			{
 				logger.Out(L"%s(%d): Checking for updates is enabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
 
-				hUpdater = reinterpret_cast<HANDLE>(_beginthreadex(NULL, 0, &Updater, NULL, 0, &dwUpdaterID));
+				hUpdater = reinterpret_cast<HANDLE>(_beginthreadex(NULL, 0, &Updater, NULL, 0, NULL));
 				if (NULL == hUpdater)
 				{
 					DWORD dwLastError = GetLastError();

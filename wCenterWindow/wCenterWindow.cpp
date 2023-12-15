@@ -63,7 +63,7 @@ LPVOID				szWinTitleBuffer = nullptr;
 
 // Forward declarations of functions included in this code module:
 VOID				HandlingTrayIcon();
-VOID				ShowError(UINT);
+VOID				ShowError(UINT, LPCWSTR);
 BOOL				IsWindowApprooved(HWND);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	KeyboardHookProc(int, WPARAM, LPARAM);
@@ -128,7 +128,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	if (FindWindowW(szClass, NULL))
 	{
-		ShowError(IDS_RUNNING);
+		ShowError(IDS_RUNNING, szTitle);
 		return -5;
 	}
 
@@ -163,14 +163,14 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	hIcon = wcex.hIcon;
 	if (!RegisterClassExW(&wcex))
 	{
-		ShowError(IDS_ERR_CLASS);
+		ShowError(IDS_ERR_CLASS, szTitle);
 		return -4;
 	}
 
 	HWND hMainWnd = CreateWindowExW(0, szClass, szTitle, 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
 	if (!hMainWnd)
 	{
-		ShowError(IDS_ERR_WND);
+		ShowError(IDS_ERR_WND, szTitle);
 		return -3;
 	}
 
@@ -180,7 +180,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	szWinTitleBuffer = HeapAlloc(hHeap, HEAP_ZERO_MEMORY, MAX_WINTITLE_BUFFER_LENGTH);
 	if (nullptr == szWinTitleBuffer)
 	{
-		ShowError(IDS_ERR_HEAP);
+		ShowError(IDS_ERR_HEAP, szTitle);
 		return -2;
 	}
 
@@ -191,7 +191,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	{
 		if (bRet == -1)
 		{
-			ShowError(IDS_ERR_MAIN);
+			ShowError(IDS_ERR_MAIN, szTitle);
 			return -1;
 		}
 		else
@@ -227,7 +227,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 			if (!hMenu)
 			{
 				logger.Out(L"%s(%d): Loading context menu failed!", TEXT(__FUNCTION__), __LINE__);
-				ShowError(IDS_ERR_MENU);
+				ShowError(IDS_ERR_MENU, szTitle);
 				PostQuitMessage(0);
 			}
 			logger.Out(L"%s(%d): Context menu successfully loaded", TEXT(__FUNCTION__), __LINE__);
@@ -236,7 +236,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 			if (!hPopup)
 			{
 				logger.Out(L"%s(%d): Creating popup menu failed!", TEXT(__FUNCTION__), __LINE__);
-				ShowError(IDS_ERR_POPUP);
+				ShowError(IDS_ERR_POPUP, szTitle);
 				PostQuitMessage(0);
 			}
 			logger.Out(L"%s(%d): Popup menu successfully created", TEXT(__FUNCTION__), __LINE__);
@@ -260,7 +260,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 				if (!SetTimer(hMainWnd, IDT_TIMER, (T1 * 1000 - T0 * 1000), NULL))					// 50 seconds
 				{
 					logger.Out(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
-					ShowError(IDS_ERR_TIMER);
+					ShowError(IDS_ERR_TIMER, szTitle);
 					fCheckUpdates = FALSE;
 				}
 				logger.Out(L"%s(%d): Timer successfully created (%d sec)", TEXT(__FUNCTION__), __LINE__, (T1 - T0));
@@ -272,7 +272,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 			{
 				logger.Out(L"%s(%d): Mouse hook creation failed!", TEXT(__FUNCTION__), __LINE__);
 
-				ShowError(IDS_ERR_HOOK);
+				ShowError(IDS_ERR_HOOK, szTitle);
 				PostQuitMessage(0);
 			}
 			logger.Out(L"%s(%d): The mouse hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
@@ -283,7 +283,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 			{
 				logger.Out(L"%s(%d): Keyboard hook creation failed!", TEXT(__FUNCTION__), __LINE__);
 
-				ShowError(IDS_ERR_HOOK);
+				ShowError(IDS_ERR_HOOK, szTitle);
 				PostQuitMessage(0);
 			}
 			logger.Out(L"%s(%d): The keyboard hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
@@ -307,7 +307,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 					if (!SetTimer(hMainWnd, IDT_TIMER, (T2 * 1000), NULL))							// 1 day
 					{
 						logger.Out(L"%s(%d): Creating timer failed!", TEXT(__FUNCTION__), __LINE__);
-						ShowError(IDS_ERR_TIMER);
+						ShowError(IDS_ERR_TIMER, szTitle);
 						fCheckUpdates = FALSE;
 					}
 					logger.Out(L"%s(%d): Timer successfully created (%d sec)", TEXT(__FUNCTION__), __LINE__, T2);
@@ -556,7 +556,7 @@ BOOL IsWindowApprooved(HWND hFW)
 
 				bApprooved = TRUE;
 			}
-			else ShowError(IDS_ERR_MAXMIN);
+			else ShowError(IDS_ERR_MAXMIN, szTitle);
 		}
 		else
 		{
@@ -590,7 +590,7 @@ VOID HandlingTrayIcon()
 		{
 			logger.Out(L"%s(%d): Error creating trayicon!", TEXT(__FUNCTION__), __LINE__);
 
-			ShowError(IDS_ERR_ICON);
+			ShowError(IDS_ERR_ICON, szTitle);
 			Shell_NotifyIconW(NIM_DELETE, &nid);
 			fShowIcon = FALSE;
 		}
@@ -607,11 +607,11 @@ VOID HandlingTrayIcon()
 	logger.Out(L"Exit from the %s() function", TEXT(__FUNCTION__));
 }
 
-VOID ShowError(UINT uID)
+VOID ShowError(UINT uID, LPCWSTR szAppTitle)
 {
 	WCHAR szErrorText[MAX_LOADSTRING];																// Error's text
 	LoadStringW(hInst, uID, szErrorText, _countof(szErrorText));
-	MessageBoxW(NULL, szErrorText, szTitle, MB_OK | MB_ICONERROR | MB_TOPMOST);
+	MessageBoxW(NULL, szErrorText, szAppTitle, MB_OK | MB_ICONERROR | MB_TOPMOST);
 }
 
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)

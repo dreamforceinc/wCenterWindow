@@ -352,6 +352,16 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 					SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
 					logger.Out(L"%s(%d): Changed 'Use workarea' option to %s", TEXT(__FUNCTION__), __LINE__, bWorkArea ? L"True" : L"False");
 				}
+				if (ID_POPUPMENU_HELP == idMenu && !bKPressed)
+				{
+					logger.Out(L"%s(%d): Pressed the 'Help' menuitem", TEXT(__FUNCTION__), __LINE__);
+
+					bKPressed = TRUE;
+					WCHAR szHelp[MAX_LOADSTRING * 12];
+					LoadStringW(GetModuleHandleW(NULL), IDS_HELP, szHelp, _countof(szHelp));
+					MessageBoxW(hMainWnd, szHelp, szTitle, MB_OK | MB_ICONINFORMATION);
+					bKPressed = FALSE;
+				}
 				if (ID_POPUPMENU_ABOUT == idMenu && !bKPressed)
 				{
 					logger.Out(L"%s(%d): Pressed the 'About' menuitem", TEXT(__FUNCTION__), __LINE__);
@@ -635,15 +645,13 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			WCHAR szAboutProgName[MAX_LOADSTRING];
 			WCHAR szAboutCopyright[MAX_LOADSTRING];
 			WCHAR szAboutBuildTime[MAX_LOADSTRING];
-			WCHAR szAboutHelp[MAX_LOADSTRING * 12];
 			MultiByteToWideChar(1251, 0, PRODUCT_NAME_FULL, _countof(PRODUCT_NAME_FULL), szAboutProgName, MAX_LOADSTRING);
 			MultiByteToWideChar(1251, 0, PRODUCT_COPYRIGHT, _countof(PRODUCT_COPYRIGHT), szAboutCopyright, MAX_LOADSTRING);
 			MultiByteToWideChar(1251, 0, ABOUT_BUILD, _countof(ABOUT_BUILD), szAboutBuildTime, MAX_LOADSTRING);
-			LoadStringW(GetModuleHandleW(NULL), IDS_HELP, szAboutHelp, _countof(szAboutHelp));
 			SetDlgItemTextW(hDlg, IDC_ABOUT_PROGNAME, szAboutProgName);
 			SetDlgItemTextW(hDlg, IDC_ABOUT_COPYRIGHT, szAboutCopyright);
 			SetDlgItemTextW(hDlg, IDC_ABOUT_BUILDTIME, szAboutBuildTime);
-			SetDlgItemTextW(hDlg, IDC_ABOUTEDIT, szAboutHelp);
+			//SetDlgItemTextW(hDlg, IDC_ABOUTEDIT, szAboutHelp);
 #ifdef NO_DONATION
 			HWND hLink = GetDlgItem(hDlg, IDC_DONATIONLINK);
 			if (hLink) DestroyWindow(hLink);

@@ -22,8 +22,9 @@
 
 // wCenterWindow
 // wCenterWindow.cpp
-// TODO: Add Help menuitem into popup menu.
+
 // TODO: Add license info into About dialog.
+// TODO: Add 'Center' button into Manual Editing dialog.
 // TODO: Fix tray icon that disappears after explorer reboot.
 // TODO: Change keyboard low-level hook to RegisterHotKey function.
 
@@ -237,6 +238,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	logger.Out(L"Exit from the %s() function, msg.wParam = 0x%08X", TEXT(__FUNCTION__), static_cast<int>(msg.wParam));
 
+	HeapFree(hHeap, NULL, szWinClassBuffer);
 	HeapFree(hHeap, NULL, szWinTitleBuffer);
 
 	return static_cast<int>(msg.wParam);

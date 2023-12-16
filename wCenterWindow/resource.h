@@ -31,9 +31,10 @@
 #define IDR_MENU                        106
 #define ID_POPUPMENU_ICON               107
 #define ID_POPUPMENU_AREA               108
+#define ID_POPUPMENU_HELP               109
 #define ID_POPUPMENU_ABOUT              110
 #define ID_POPUPMENU_EXIT               111
-#define IDS_ABOUT                       112
+#define IDS_HELP                        112
 #define IDS_ERR_MAIN                    113
 #define IDS_ERR_CLASS                   114
 #define IDS_ERR_WND                     115

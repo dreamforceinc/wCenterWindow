@@ -26,6 +26,7 @@
 // TODO: Add license info into About dialog.
 // TODO: Add 'Center' button into Manual Editing dialog.
 // TODO: Fix tray icon that disappears after explorer reboot.
+// TODO: Split main cpp-file to separate files.
 // TODO: Change keyboard low-level hook to RegisterHotKey function.
 
 #include "framework.h"

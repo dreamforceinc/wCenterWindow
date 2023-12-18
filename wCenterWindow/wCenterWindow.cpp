@@ -23,8 +23,6 @@
 // wCenterWindow
 // wCenterWindow.cpp
 
-// TODO: Add license info into About dialog.
-// TODO: Add 'Center' button into Manual Editing dialog.
 // TODO: Fix tray icon that disappears after explorer reboot.
 // TODO: Split main cpp-file to separate files.
 // TODO: Change keyboard low-level hook to RegisterHotKey function.
@@ -525,6 +523,16 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 
 					logger.Out(L"%s(%d): Window with handle 0x%08X was moved to %d, %d", TEXT(__FUNCTION__), __LINE__, hFgWnd, x, y);
 
+					return static_cast<INT_PTR>(TRUE);
+					break;
+				}
+				case IDC_BUTTON_CENTER:
+				{
+					logger.Out(L"%s(%d): Pressed the 'Center' button", TEXT(__FUNCTION__), __LINE__);
+
+					bKPressed = TRUE;
+					if (IsWindowApprooved(hFgWnd)) MoveWindowToMonitorCenter(hFgWnd, bWorkArea, FALSE);
+					else hFgWnd = NULL;
 					return static_cast<INT_PTR>(TRUE);
 					break;
 				}

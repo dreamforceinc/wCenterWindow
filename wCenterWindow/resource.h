@@ -1,25 +1,3 @@
-// MIT License
-// 
-// Copyright (c) 2023 W0LF aka 'dreamforce'
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
 // Used by wCenterWindow.rc
@@ -57,14 +35,15 @@
 #define IDC_EDIT_TITLE                  1004
 #define IDC_EDIT_CLASS                  1005
 #define IDC_BUTTON_SET                  1006
-#define IDC_BUTTON_CLOSE                1007
-#define IDC_ABOUTHELP                   1008
-#define IDC_DONATIONLINK                1009
-#define IDC_DONATIONTEXT                1010
-#define IDC_ABOUT_PROGNAME              1011
-#define IDC_ABOUT_COPYRIGHT             1012
-#define IDC_ABOUT_BUILDTIME             1013
-#define IDC_ABOUTEDIT                   1014
+#define IDC_BUTTON_CENTER               1007
+#define IDC_BUTTON_CLOSE                1008
+#define IDC_ABOUTHELP                   1009
+#define IDC_DONATIONLINK                1010
+#define IDC_DONATIONTEXT                1011
+#define IDC_ABOUT_PROGNAME              1012
+#define IDC_ABOUT_COPYRIGHT             1013
+#define IDC_ABOUT_BUILDTIME             1014
+#define IDC_ABOUTEDIT                   1015
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -74,7 +53,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1015
+#define _APS_NEXT_CONTROL_VALUE         1016
 #define _APS_NEXT_SYMED_VALUE           126
 #endif
 #endif

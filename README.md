@@ -8,9 +8,9 @@ or pressing `LCTRL + LWIN + MMB` (Middle Mouse Button).
 You can use `LCTRL + LWIN + I` hotkey for hide/show trayicon.
 You can also use commandline option `/hide` for hide trayicon at startup.
 
-The `/noupdate` option is used to disable check for updates. By default, the check is repeated once a day.
+The `/noupdate` option is used to disable check for updates. By default, the program checks for updates upon startup and once a day.
 
-`Use workarea` option means that the window is centered without a taskbar, otherwise, the full resolution of the monitor will be used.
+The `Use workarea` option means that the window is centered without a taskbar, otherwise, the full resolution of the monitor will be used.
 
 If some windows does not centers you should run wCenterWindow with administrative rights.
 

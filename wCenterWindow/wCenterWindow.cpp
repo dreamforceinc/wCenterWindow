@@ -360,7 +360,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 					logger.Out(L"%s(%d): Pressed the 'Help' menuitem", TEXT(__FUNCTION__), __LINE__);
 
 					bKPressed = TRUE;
-					WCHAR szHelp[MAX_LOADSTRING * 12];
+					WCHAR szHelp[MAX_LOADSTRING * 15];
 					LoadStringW(GetModuleHandleW(NULL), IDS_HELP, szHelp, _countof(szHelp));
 					MessageBoxW(hMainWnd, szHelp, szTitle, MB_OK | MB_ICONINFORMATION);
 					bKPressed = FALSE;

@@ -648,13 +648,15 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			WCHAR szAboutProgName[MAX_LOADSTRING];
 			WCHAR szAboutCopyright[MAX_LOADSTRING];
 			WCHAR szAboutBuildTime[MAX_LOADSTRING];
+			WCHAR szAboutLicense[MAX_LOADSTRING * 22];
+			LoadStringW(GetModuleHandleW(NULL), IDS_LICENSE, szAboutLicense, _countof(szAboutLicense));
 			MultiByteToWideChar(1251, 0, PRODUCT_NAME_FULL, _countof(PRODUCT_NAME_FULL), szAboutProgName, MAX_LOADSTRING);
 			MultiByteToWideChar(1251, 0, PRODUCT_COPYRIGHT, _countof(PRODUCT_COPYRIGHT), szAboutCopyright, MAX_LOADSTRING);
 			MultiByteToWideChar(1251, 0, ABOUT_BUILD, _countof(ABOUT_BUILD), szAboutBuildTime, MAX_LOADSTRING);
 			SetDlgItemTextW(hDlg, IDC_ABOUT_PROGNAME, szAboutProgName);
 			SetDlgItemTextW(hDlg, IDC_ABOUT_COPYRIGHT, szAboutCopyright);
 			SetDlgItemTextW(hDlg, IDC_ABOUT_BUILDTIME, szAboutBuildTime);
-			//SetDlgItemTextW(hDlg, IDC_ABOUTEDIT, szAboutHelp);
+			SetDlgItemTextW(hDlg, IDC_ABOUTEDIT, szAboutLicense);
 #ifdef NO_DONATION
 			HWND hLink = GetDlgItem(hDlg, IDC_DONATIONLINK);
 			if (hLink) DestroyWindow(hLink);

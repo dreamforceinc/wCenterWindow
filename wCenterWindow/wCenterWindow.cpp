@@ -23,7 +23,6 @@
 // wCenterWindow
 // wCenterWindow.cpp
 
-// TODO: Fix tray icon that disappears after explorer reboot.
 // TODO: Split main cpp-file to separate files.
 // TODO: Change keyboard low-level hook to RegisterHotKey function.
 
@@ -46,6 +45,7 @@ HMENU				hMenu = NULL, hPopup = NULL;
 HWND				hFgWnd = NULL;
 BOOL				bKPressed = FALSE, bMPressed = FALSE, fShowIcon = TRUE, fCheckUpdates = TRUE, bWorkArea = TRUE;
 BOOL				bLCTRL = FALSE, bLWIN = FALSE, bKEYV = FALSE;
+UINT				uMsgRestore = 0;
 CLogger				logger(TEXT(PRODUCT_NAME_FULL));
 
 NOTIFYICONDATAW		nid = { 0 };
@@ -234,11 +234,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (hMenu) DestroyMenu(hMenu);
 	Shell_NotifyIconW(NIM_DELETE, &nid);
 	DestroyIcon(hIcon);
-
-	logger.Out(L"Exit from the %s() function, msg.wParam = 0x%08X", TEXT(__FUNCTION__), static_cast<int>(msg.wParam));
-
 	HeapFree(hHeap, NULL, szWinClassBuffer);
 	HeapFree(hHeap, NULL, szWinTitleBuffer);
+
+	logger.Out(L"Exit from the %s() function, msg.wParam = 0x%08X", TEXT(__FUNCTION__), static_cast<int>(msg.wParam));
 
 	return static_cast<int>(msg.wParam);
 }
@@ -282,6 +281,13 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 			nid.uID = IDI_TRAYICON;
 			nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
 			StringCchCopyW(nid.szTip, _countof(nid.szTip), szTitle);
+
+			uMsgRestore = RegisterWindowMessageW(L"TaskbarCreated");
+			if (!uMsgRestore)
+			{
+				logger.Out(L"%s(%d): Registering 'TaskbarCreated' message failed!", TEXT(__FUNCTION__), __LINE__);
+			}
+			logger.Out(L"%s(%d): The 'TaskbarCreated' message successfully registered", TEXT(__FUNCTION__), __LINE__);
 
 			if (fCheckUpdates)
 			{
@@ -400,9 +406,17 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 			break;
 		}
 
-		default: return DefWindowProcW(hMainWnd, message, wParam, lParam);
+		default:
+		{
+			if (message == uMsgRestore)
+			{
+				Shell_NotifyIconW(NIM_DELETE, &nid);
+				Shell_NotifyIconW(NIM_ADD, &nid);
+				break;
+			}
+		}
 	}
-	return 0;
+	return DefWindowProcW(hMainWnd, message, wParam, lParam);
 }
 
 LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam)
@@ -619,10 +633,6 @@ VOID HandlingTrayIcon()
 			ShowError(IDS_ERR_ICON, szTitle);
 			Shell_NotifyIconW(NIM_DELETE, &nid);
 			fShowIcon = FALSE;
-		}
-		else
-		{
-			Shell_NotifyIconW(NIM_MODIFY, &nid);
 		}
 	}
 	else

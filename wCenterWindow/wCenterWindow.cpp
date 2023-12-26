@@ -257,6 +257,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (hKbdHook) UnhookWindowsHookEx(hKbdHook);
 	if (hMenu) DestroyMenu(hMenu);
 	Shell_NotifyIconW(NIM_DELETE, &nid);
+	KillTimer(hMainWnd, IDT_TIMER);
 	DestroyIcon(hIconSmall);
 	DestroyIcon(hIconLarge);
 	HeapFree(hHeap, NULL, szWinClassBuffer);

@@ -341,10 +341,15 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 			{
 				logger.Out(L"%s(%d): Entering the WM_WCW message handler", TEXT(__FUNCTION__), __LINE__);
 
-				SetForegroundWindow(hMainWnd);
 				POINT pt;
 				GetCursorPos(&pt);
-				int idMenu = TrackPopupMenu(hPopup, TPM_RETURNCMD, pt.x, pt.y, 0, hMainWnd, NULL);
+				SetForegroundWindow(hMainWnd);
+
+				UINT uFlags = TPM_RETURNCMD | TPM_RIGHTBUTTON;
+				GetSystemMetrics(SM_MENUDROPALIGNMENT) != 0 ? uFlags |= TPM_RIGHTALIGN : uFlags |= TPM_LEFTALIGN;
+
+				int idMenu = TrackPopupMenuEx(hPopup, uFlags, pt.x, pt.y, hMainWnd, NULL);
+				PostMessageW(hMainWnd, WM_NULL, 0, 0);
 				if (ID_POPUPMENU_ICON == idMenu)
 				{
 					logger.Out(L"%s(%d): Pressed the 'Hide icon' menuitem", TEXT(__FUNCTION__), __LINE__);
@@ -383,7 +388,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 				{
 					logger.Out(L"%s(%d): Pressed the 'Exit' menuitem", TEXT(__FUNCTION__), __LINE__);
 
-					PostQuitMessage(0);
+					DestroyWindow(hMainWnd);
 				}
 
 				logger.Out(L"%s(%d): Exit from the WM_WCW message handler", TEXT(__FUNCTION__), __LINE__);

@@ -40,7 +40,7 @@
 
 // Global variables:
 WCHAR				szTitle[MAX_LOADSTRING]{ 0 };													// wCenterWindow's title
-HICON				hIcon = NULL;
+HICON				hIconSmall = NULL, hIconLarge = NULL;
 HMENU				hMenu = NULL, hPopup = NULL;
 HWND				hFgWnd = NULL;
 BOOL				bKPressed = FALSE, bMPressed = FALSE, fShowIcon = TRUE, fCheckUpdates = TRUE, bWorkArea = TRUE;
@@ -147,16 +147,17 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	}
 	LocalFree(szArglist);
 
+	LoadIconMetric(hInstance, MAKEINTRESOURCEW(IDI_TRAYICON), LIM_LARGE, &hIconLarge);
+	LoadIconMetric(hInstance, MAKEINTRESOURCEW(IDI_TRAYICON), LIM_SMALL, &hIconSmall);
+
 	WNDCLASSEX wcex = { 0 };
 	wcex.cbSize = sizeof(WNDCLASSEX);
 	wcex.lpfnWndProc = WndProc;
 	wcex.hInstance = hInstance;
-	wcex.hIcon = LoadIconW(hInstance, MAKEINTRESOURCE(IDI_TRAYICON));
-	LoadIconMetric(hInstance, MAKEINTRESOURCE(IDI_TRAYICON), LIM_LARGE, &(wcex.hIcon));
+	wcex.hIcon = hIconLarge;
 	wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
 	wcex.lpszClassName = szClass;
-	wcex.hIconSm = wcex.hIcon;
-	hIcon = wcex.hIcon;
+	wcex.hIconSm = hIconSmall;
 	if (!RegisterClassExW(&wcex))
 	{
 		ShowError(IDS_ERR_CLASS, szTitle);
@@ -233,7 +234,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (hKbdHook) UnhookWindowsHookEx(hKbdHook);
 	if (hMenu) DestroyMenu(hMenu);
 	Shell_NotifyIconW(NIM_DELETE, &nid);
-	DestroyIcon(hIcon);
+	DestroyIcon(hIconSmall);
+	DestroyIcon(hIconLarge);
 	HeapFree(hHeap, NULL, szWinClassBuffer);
 	HeapFree(hHeap, NULL, szWinTitleBuffer);
 
@@ -277,7 +279,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 			nid.hWnd = hMainWnd;
 			nid.uVersion = NOTIFYICON_VERSION;
 			nid.uCallbackMessage = WM_WCW;
-			nid.hIcon = hIcon;
+			nid.hIcon = hIconSmall;
 			nid.uID = IDI_TRAYICON;
 			nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
 			StringCchCopyW(nid.szTip, _countof(nid.szTip), szTitle);

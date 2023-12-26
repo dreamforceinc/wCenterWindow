@@ -41,7 +41,7 @@
 // Global variables:
 WCHAR				szTitle[MAX_LOADSTRING]{ 0 };													// wCenterWindow's title
 HICON				hIconSmall = NULL, hIconLarge = NULL;
-HMENU				hMenu = NULL, hPopup = NULL;
+HMENU				hPopup = NULL;
 HWND				hFgWnd = NULL;
 BOOL				bKPressed = FALSE, bMPressed = FALSE, fShowIcon = TRUE, fCheckUpdates = TRUE, bWorkArea = TRUE;
 BOOL				bLCTRL = FALSE, bLWIN = FALSE, bKEYV = FALSE;
@@ -49,7 +49,7 @@ UINT				uMsgRestore = 0;
 CLogger				logger(TEXT(PRODUCT_NAME_FULL));
 
 NOTIFYICONDATAW		nid = { 0 };
-MENUITEMINFO		mii = { 0 };
+MENUITEMINFOW		mii = { 0 };
 
 LPVOID				szWinTitleBuffer = nullptr;
 LPVOID				szWinClassBuffer = nullptr;
@@ -125,7 +125,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (FindWindowW(szClass, NULL))
 	{
 		ShowError(IDS_RUNNING, szTitle);
-		return -8;
+		return -10;
 	}
 
 	logger.Out(L"Entering the %s() function", TEXT(__FUNCTION__));
@@ -150,8 +150,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	LoadIconMetric(hInstance, MAKEINTRESOURCEW(IDI_TRAYICON), LIM_LARGE, &hIconLarge);
 	LoadIconMetric(hInstance, MAKEINTRESOURCEW(IDI_TRAYICON), LIM_SMALL, &hIconSmall);
 
-	WNDCLASSEX wcex = { 0 };
-	wcex.cbSize = sizeof(WNDCLASSEX);
+	WNDCLASSEXW wcex = { 0 };
+	wcex.cbSize = sizeof(WNDCLASSEXW);
 	wcex.lpfnWndProc = WndProc;
 	wcex.hInstance = hInstance;
 	wcex.hIcon = hIconLarge;
@@ -161,14 +161,14 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!RegisterClassExW(&wcex))
 	{
 		ShowError(IDS_ERR_CLASS, szTitle);
-		return -7;
+		return -9;
 	}
 
 	HWND hMainWnd = CreateWindowExW(0, szClass, szTitle, 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
 	if (!hMainWnd)
 	{
 		ShowError(IDS_ERR_WND, szTitle);
-		return -6;
+		return -8;
 	}
 
 #ifndef _DEBUG
@@ -178,7 +178,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		logger.Out(L"%s(%d): Mouse hook creation failed!", TEXT(__FUNCTION__), __LINE__);
 
 		ShowError(IDS_ERR_HOOK, szTitle);
-		return -5;
+		return -7;
 	}
 	logger.Out(L"%s(%d): The mouse hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
 #endif // !_DEBUG
@@ -189,9 +189,32 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		logger.Out(L"%s(%d): Keyboard hook creation failed!", TEXT(__FUNCTION__), __LINE__);
 
 		ShowError(IDS_ERR_HOOK, szTitle);
-		return -4;
+		return -6;
 	}
 	logger.Out(L"%s(%d): The keyboard hook was successfully installed", TEXT(__FUNCTION__), __LINE__);
+
+	HMENU hMenu = LoadMenuW(hInstance, MAKEINTRESOURCE(IDR_MENU));
+	if (!hMenu)
+	{
+		logger.Out(L"%s(%d): Loading context menu failed!", TEXT(__FUNCTION__), __LINE__);
+		ShowError(IDS_ERR_MENU, szTitle);
+		return -5;
+	}
+	logger.Out(L"%s(%d): Context menu successfully loaded", TEXT(__FUNCTION__), __LINE__);
+
+	hPopup = GetSubMenu(hMenu, 0);
+	if (!hPopup)
+	{
+		logger.Out(L"%s(%d): Creating popup menu failed!", TEXT(__FUNCTION__), __LINE__);
+		ShowError(IDS_ERR_POPUP, szTitle);
+		return -4;
+	}
+	logger.Out(L"%s(%d): Popup menu successfully created", TEXT(__FUNCTION__), __LINE__);
+
+	mii.cbSize = sizeof(MENUITEMINFOW);
+	mii.fMask = MIIM_STATE;
+	bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
+	SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
 
 	HandlingTrayIcon();
 
@@ -251,29 +274,6 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 		case WM_CREATE:
 		{
 			logger.Out(L"%s(%d): Recived WM_CREATE message", TEXT(__FUNCTION__), __LINE__);
-
-			hMenu = LoadMenuW(GetModuleHandleW(NULL), MAKEINTRESOURCE(IDR_MENU));
-			if (!hMenu)
-			{
-				logger.Out(L"%s(%d): Loading context menu failed!", TEXT(__FUNCTION__), __LINE__);
-				ShowError(IDS_ERR_MENU, szTitle);
-				PostQuitMessage(0);
-			}
-			logger.Out(L"%s(%d): Context menu successfully loaded", TEXT(__FUNCTION__), __LINE__);
-
-			hPopup = GetSubMenu(hMenu, 0);
-			if (!hPopup)
-			{
-				logger.Out(L"%s(%d): Creating popup menu failed!", TEXT(__FUNCTION__), __LINE__);
-				ShowError(IDS_ERR_POPUP, szTitle);
-				PostQuitMessage(0);
-			}
-			logger.Out(L"%s(%d): Popup menu successfully created", TEXT(__FUNCTION__), __LINE__);
-
-			mii.cbSize = sizeof(MENUITEMINFO);
-			mii.fMask = MIIM_STATE;
-			bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
-			SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
 
 			nid.cbSize = sizeof(NOTIFYICONDATAW);
 			nid.hWnd = hMainWnd;

@@ -24,6 +24,7 @@
 // wCenterWindow.cpp
 
 // TODO: Split main cpp-file to separate files.
+// TODO: Fix "msg.wParam = 0x%08X" for x64 builds.
 // TODO: Change keyboard low-level hook to RegisterHotKey function.
 
 #include "framework.h"

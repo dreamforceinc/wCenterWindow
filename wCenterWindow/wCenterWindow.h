@@ -46,6 +46,7 @@
 #include <vector>
 #include <strsafe.h>
 #include <windows.h>
+#include <windowsx.h>
 #include <wininet.h>
 #include <shellapi.h>
 #include <CommCtrl.h>

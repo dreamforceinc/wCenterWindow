@@ -55,12 +55,10 @@ MENUITEMINFOW		mii = { 0 };
 LPVOID				szWinTitleBuffer = nullptr;
 LPVOID				szWinClassBuffer = nullptr;
 
-// {2D7B7F30-4B5F-4380-9807-57D7A2E37F6C}
-// static const GUID	guid = { 0x2d7b7f30, 0x4b5f, 0x4380, { 0x98, 0x7, 0x57, 0xd7, 0xa2, 0xe3, 0x7f, 0x6c } };
-
 // Forward declarations of functions included in this code module:
 VOID				HandlingTrayIcon();
 VOID				ShowError(UINT, LPCWSTR);
+VOID				ShowPopupMenu(HWND, POINT);
 BOOL				IsWindowApprooved(HWND);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	KeyboardHookProc(int, WPARAM, LPARAM);
@@ -279,11 +277,11 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 
 			nid.cbSize = sizeof(NOTIFYICONDATAW);
 			nid.hWnd = hMainWnd;
-			nid.uVersion = NOTIFYICON_VERSION;
+			nid.uVersion = NOTIFYICON_VERSION_4;
 			nid.uCallbackMessage = WM_WCW;
 			nid.hIcon = hIconSmall;
 			nid.uID = IDI_TRAYICON;
-			nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+			nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP | NIF_SHOWTIP;
 			StringCchCopyW(nid.szTip, _countof(nid.szTip), szTitle);
 
 			uMsgRestore = RegisterWindowMessageW(L"TaskbarCreated");
@@ -339,27 +337,31 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 
 		case WM_WCW:																				// Popup menu handler
 		{
-			if (IDI_TRAYICON == wParam && (WM_RBUTTONDOWN == lParam || WM_LBUTTONDOWN == lParam))
+			if (WM_CONTEXTMENU == LOWORD(lParam))
 			{
-				logger.Out(L"%s(%d): Entering the WM_WCW message handler", TEXT(__FUNCTION__), __LINE__);
+				logger.Out(L"%s(%d): Recived WM_CONTEXTMENU message", TEXT(__FUNCTION__), __LINE__);
 
-				POINT pt;
-				GetCursorPos(&pt);
-				SetForegroundWindow(hMainWnd);
+				POINT pt{ GET_X_LPARAM(wParam), GET_Y_LPARAM(wParam) };
+				ShowPopupMenu(hMainWnd, pt);
+			}
+			break;
+		}
 
-				UINT uFlags = TPM_RETURNCMD | TPM_RIGHTBUTTON;
-				GetSystemMetrics(SM_MENUDROPALIGNMENT) != 0 ? uFlags |= TPM_RIGHTALIGN : uFlags |= TPM_LEFTALIGN;
-
-				int idMenu = TrackPopupMenuEx(hPopup, uFlags, pt.x, pt.y, hMainWnd, NULL);
-				PostMessageW(hMainWnd, WM_NULL, 0, 0);
-				if (ID_POPUPMENU_ICON == idMenu)
+		case WM_COMMAND:
+		{
+			int wmId = LOWORD(wParam);
+			// Parse the menu selections:
+			switch (wmId)
+			{
+				case ID_POPUPMENU_ICON:
 				{
 					logger.Out(L"%s(%d): Pressed the 'Hide icon' menuitem", TEXT(__FUNCTION__), __LINE__);
 
 					fShowIcon = FALSE;
 					HandlingTrayIcon();
+					break;
 				}
-				if (ID_POPUPMENU_AREA == idMenu)
+				case ID_POPUPMENU_AREA:
 				{
 					logger.Out(L"%s(%d): Pressed the 'Use workarea' menuitem", TEXT(__FUNCTION__), __LINE__);
 
@@ -367,33 +369,41 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 					bWorkArea ? mii.fState = MFS_CHECKED : mii.fState = MFS_UNCHECKED;
 					SetMenuItemInfoW(hPopup, ID_POPUPMENU_AREA, FALSE, &mii);
 					logger.Out(L"%s(%d): Changed 'Use workarea' option to %s", TEXT(__FUNCTION__), __LINE__, bWorkArea ? L"True" : L"False");
+					break;
 				}
-				if (ID_POPUPMENU_HELP == idMenu && !bKPressed)
+				case ID_POPUPMENU_HELP:
 				{
-					logger.Out(L"%s(%d): Pressed the 'Help' menuitem", TEXT(__FUNCTION__), __LINE__);
+					if (!bKPressed)
+					{
+						logger.Out(L"%s(%d): Pressed the 'Help' menuitem", TEXT(__FUNCTION__), __LINE__);
 
-					bKPressed = TRUE;
-					WCHAR szHelp[MAX_LOADSTRING * 15];
-					LoadStringW(GetModuleHandleW(NULL), IDS_HELP, szHelp, _countof(szHelp));
-					MessageBoxW(hMainWnd, szHelp, szTitle, MB_OK | MB_ICONINFORMATION);
-					bKPressed = FALSE;
+						bKPressed = TRUE;
+						WCHAR szHelp[MAX_LOADSTRING * 15];
+						LoadStringW(GetModuleHandleW(NULL), IDS_HELP, szHelp, _countof(szHelp));
+						MessageBoxW(hMainWnd, szHelp, szTitle, MB_OK | MB_ICONINFORMATION);
+						bKPressed = FALSE;
+					}
+					break;
 				}
-				if (ID_POPUPMENU_ABOUT == idMenu && !bKPressed)
+				case ID_POPUPMENU_ABOUT:
 				{
-					logger.Out(L"%s(%d): Pressed the 'About' menuitem", TEXT(__FUNCTION__), __LINE__);
+					if (!bKPressed)
+					{
+						logger.Out(L"%s(%d): Pressed the 'About' menuitem", TEXT(__FUNCTION__), __LINE__);
 
-					bKPressed = TRUE;
-					DialogBoxParamW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(IDD_ABOUTBOX), hMainWnd, static_cast<DLGPROC>(About), 0L);
-					bKPressed = FALSE;
+						bKPressed = TRUE;
+						DialogBoxParamW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(IDD_ABOUTBOX), hMainWnd, static_cast<DLGPROC>(About), 0L);
+						bKPressed = FALSE;
+					}
+					break;
 				}
-				if (ID_POPUPMENU_EXIT == idMenu)
+				case ID_POPUPMENU_EXIT:
 				{
 					logger.Out(L"%s(%d): Pressed the 'Exit' menuitem", TEXT(__FUNCTION__), __LINE__);
 
 					DestroyWindow(hMainWnd);
+					break;
 				}
-
-				logger.Out(L"%s(%d): Exit from the WM_WCW message handler", TEXT(__FUNCTION__), __LINE__);
 			}
 			break;
 		}
@@ -423,9 +433,10 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 				Shell_NotifyIconW(NIM_ADD, &nid);
 				break;
 			}
+			return DefWindowProcW(hMainWnd, message, wParam, lParam);
 		}
 	}
-	return DefWindowProcW(hMainWnd, message, wParam, lParam);
+	return 0;
 }
 
 LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam)
@@ -657,6 +668,15 @@ VOID ShowError(UINT uID, LPCWSTR szAppTitle)
 	WCHAR szErrorText[MAX_LOADSTRING];																// Error's text
 	LoadStringW(GetModuleHandleW(NULL), uID, szErrorText, _countof(szErrorText));
 	MessageBoxW(NULL, szErrorText, szAppTitle, MB_OK | MB_ICONERROR | MB_TOPMOST);
+}
+
+VOID ShowPopupMenu(HWND hMainWnd, POINT pt)
+{
+	SetForegroundWindow(hMainWnd);
+	UINT uFlags = TPM_RIGHTBUTTON;
+	GetSystemMetrics(SM_MENUDROPALIGNMENT) != 0 ? uFlags |= TPM_RIGHTALIGN : uFlags |= TPM_LEFTALIGN;
+	TrackPopupMenuEx(hPopup, uFlags, pt.x, pt.y, hMainWnd, NULL);
+	PostMessageW(hMainWnd, WM_NULL, 0, 0);
 }
 
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)

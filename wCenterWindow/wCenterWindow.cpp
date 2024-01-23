@@ -23,8 +23,12 @@
 // wCenterWindow
 // wCenterWindow.cpp
 
+// TODO: Change the formatting of source files.
+// TODO: Add the name of app's icon author to the About dialog.
+// TODO: Move the InitCommonControlsEx() function to the WinMain().
 // TODO: Split main cpp-file to separate files.
-// TODO: Change keyboard low-level hook to RegisterHotKey function.
+// TODO: Make the automatic updater (download, unzip and replace executable).
+// TODO: Change keyboard low-level hook to RegisterHotKey function. (Is it really needed?)
 
 #include "framework.h"
 #include "wCenterWindow.h"

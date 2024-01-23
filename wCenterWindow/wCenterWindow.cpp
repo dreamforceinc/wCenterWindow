@@ -24,7 +24,6 @@
 // wCenterWindow.cpp
 
 // TODO: Split main cpp-file to separate files.
-// TODO: Fix "msg.wParam = 0x%08X" for x64 builds.
 // TODO: Change keyboard low-level hook to RegisterHotKey function.
 
 #include "framework.h"
@@ -262,7 +261,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	HeapFree(hHeap, NULL, szWinClassBuffer);
 	HeapFree(hHeap, NULL, szWinTitleBuffer);
 
-	logger.Out(L"Exit from the %s() function, msg.wParam = 0x%08X", TEXT(__FUNCTION__), static_cast<int>(msg.wParam));
+	logger.Out(L"Exit from the %s() function, msg.wParam = 0x%0*tX", TEXT(__FUNCTION__), (sizeof(int) * 2), static_cast<int>(msg.wParam));
 
 	return static_cast<int>(msg.wParam);
 }
@@ -308,7 +307,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 		{
 			if (fCheckUpdates)
 			{
-				logger.Out(L"%s(%d): Checking for updates is enabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
+				logger.Out(L"%s(%d): Checking for updates is enabled", TEXT(__FUNCTION__), __LINE__);
 
 				HANDLE hUpdater = reinterpret_cast<HANDLE>(_beginthreadex(NULL, 0, &Updater, NULL, 0, NULL));
 				if (NULL == hUpdater)
@@ -330,7 +329,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 			}
 			else
 			{
-				logger.Out(L"%s(%d): Checking for updates is disabled, fCheckUpdates = %s", TEXT(__FUNCTION__), __LINE__, fCheckUpdates ? L"True" : L"False");
+				logger.Out(L"%s(%d): Checking for updates is disabled", TEXT(__FUNCTION__), __LINE__);
 			}
 			break;
 		}
@@ -410,7 +409,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
 
 		case WM_QUERYENDSESSION:
 		{
-			logger.Out(L"%s(%d): Recieved the WM_QUERYENDSESSION message, lParam = 0x%08X", TEXT(__FUNCTION__), __LINE__, static_cast<LONG_PTR>(lParam));
+			logger.Out(L"%s(%d): Recieved the WM_QUERYENDSESSION message, lParam = 0x%p", TEXT(__FUNCTION__), __LINE__, lParam);
 
 			PostQuitMessage(0);
 			return TRUE;
@@ -555,7 +554,7 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT dlgmsg, WPARAM wParam, LPARAM lParam)
 					MoveWindow(hFgWnd, x, y, w, h, TRUE);
 					SendMessageW(hFgWnd, WM_EXITSIZEMOVE, NULL, NULL);
 
-					logger.Out(L"%s(%d): Window with handle 0x%08X was moved to %d, %d", TEXT(__FUNCTION__), __LINE__, hFgWnd, x, y);
+					logger.Out(L"%s(%d): Window with handle 0x%p was moved to %d, %d", TEXT(__FUNCTION__), __LINE__, hFgWnd, x, y);
 
 					return static_cast<INT_PTR>(TRUE);
 					break;
@@ -592,9 +591,9 @@ BOOL IsWindowApprooved(HWND hFW)
 	BOOL bApprooved = FALSE;
 	if (hFW)
 	{
-		if (GetWindowTextW(hFW, static_cast<LPWSTR>(szWinTitleBuffer), MAX_WINTITLE_BUFFER_LENGTH))
+		if (GetWindowTextW(hFW, reinterpret_cast<LPWSTR>(szWinTitleBuffer), MAX_WINTITLE_BUFFER_LENGTH))
 		{
-			logger.Out(L"%s(%d): Window handle: 0x%08X. Title: '%s'", TEXT(__FUNCTION__), __LINE__, hFW, static_cast<LPWSTR>(szWinTitleBuffer));
+			logger.Out(L"%s(%d): Window handle: 0x%p. Title: '%s'", TEXT(__FUNCTION__), __LINE__, hFW, reinterpret_cast<LPWSTR>(szWinTitleBuffer));
 		}
 
 		if (IsIconic(hFW))
@@ -641,10 +640,10 @@ VOID HandlingTrayIcon()
 	if (fShowIcon)
 	{
 		BOOL bResult1 = Shell_NotifyIconW(NIM_ADD, &nid);
-		logger.Out(L"%s(%d): Shell_NotifyIconW(NIM_ADD): %s", TEXT(__FUNCTION__), __LINE__, bResult1 ? L"True" : L"False");
+		logger.Out(L"%s(%d): Shell_NotifyIconW(NIM_ADD) returned %s", TEXT(__FUNCTION__), __LINE__, bResult1 ? L"True" : L"False");
 
 		BOOL bResult2 = Shell_NotifyIconW(NIM_SETVERSION, &nid);
-		logger.Out(L"%s(%d): Shell_NotifyIconW(NIM_SETVERSION): %s", TEXT(__FUNCTION__), __LINE__, bResult2 ? L"True" : L"False");
+		logger.Out(L"%s(%d): Shell_NotifyIconW(NIM_SETVERSION) returned %s", TEXT(__FUNCTION__), __LINE__, bResult2 ? L"True" : L"False");
 
 		if (!bResult1 || !bResult2)
 		{
@@ -667,7 +666,7 @@ VOID ShowError(UINT uID, LPCWSTR szAppTitle)
 {
 	WCHAR szErrorText[MAX_LOADSTRING];																// Error's text
 	LoadStringW(GetModuleHandleW(NULL), uID, szErrorText, _countof(szErrorText));
-	MessageBoxW(NULL, szErrorText, szAppTitle, MB_OK | MB_ICONERROR | MB_TOPMOST);
+	MessageBoxW(hFgWnd, szErrorText, szAppTitle, MB_OK | MB_ICONERROR | MB_TOPMOST);
 }
 
 VOID ShowPopupMenu(HWND hMainWnd, POINT pt)

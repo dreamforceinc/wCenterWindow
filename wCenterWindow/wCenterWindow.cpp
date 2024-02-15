@@ -99,14 +99,22 @@ static VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize)
 		area.top = mi.rcMonitor.top;
 	}
 
-	int aw = area.right - area.left;
-	int ah = area.bottom - area.top;
-	if (nWidth > aw && bResize) nWidth = aw;
-	if (nHeight > ah && bResize) nHeight = ah;
-	if (area.left < 0) aw = -aw;
-	if (area.top < 0) ah = -ah;
-	int x = (aw - nWidth) / 2;
-	int y = (ah - nHeight) / 2;
+	LONG aw = area.right - area.left;
+	LONG ah = area.bottom - area.top;
+	if ((nWidth > aw) && bResize) nWidth = aw;
+	if ((nHeight > ah) && bResize) nHeight = ah;
+	if (area.left < 0)
+	{
+		aw = -aw;
+		area.left = 0;
+	}
+	if (area.top < 0)
+	{
+		ah = -ah;
+		area.top = 0;
+	}
+	int x = area.left + (aw - nWidth) / 2;
+	int y = area.top + (ah - nHeight) / 2;
 
 	logger.Out(L"%s(%d): Moving the window to %d, %d", TEXT(__FUNCTION__), __LINE__, x, y);
 

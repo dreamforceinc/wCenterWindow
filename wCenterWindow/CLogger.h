@@ -29,24 +29,23 @@
 
 #define MAX_LOGBUFFER_LENGTH 512
 
-class CLogger
-{
+class CLogger {
 public:
-	void Out(const wchar_t*, ...);
-	CLogger(const wchar_t*);
-	~CLogger();
+    void Out(const wchar_t*, ...);
+    CLogger(const wchar_t*);
+    ~CLogger();
 
 private:
-	SYSTEMTIME lt;
-	CRITICAL_SECTION cs;
-	wchar_t logTimeBuffer[28]{ 0 };
-	wchar_t logBuffer[MAX_LOGBUFFER_LENGTH]{ 0 };
-	std::wofstream fsLogFile;
-	std::wstring szAppTitle{ 0 };
-	std::wstring szAppVersion{ 0 };
-	std::wstring szAppPlatform{ 0 };
-	std::wstring szAppTitleVer{ 0 };
+    SYSTEMTIME lt;
+    CRITICAL_SECTION cs;
+    wchar_t logTimeBuffer[28]{ 0 };
+    wchar_t logBuffer[MAX_LOGBUFFER_LENGTH]{ 0 };
+    std::wofstream fsLogFile;
+    std::wstring szAppTitle{ 0 };
+    std::wstring szAppVersion{ 0 };
+    std::wstring szAppPlatform{ 0 };
+    std::wstring szAppTitleVer{ 0 };
 
-	inline wchar_t* GetTimeStamp();
-	void Init();
+    inline wchar_t* GetTimeStamp();
+    void Init();
 };

@@ -23,7 +23,6 @@
 // wCenterWindow
 // wCenterWindow.cpp
 
-// TODO: Change the formatting of source files.
 // TODO: Add the name of app's icon author to the About dialog.
 // TODO: Move the InitCommonControlsEx() function to the WinMain().
 // TODO: Split main cpp-file to separate files.
@@ -411,6 +410,7 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
             if (message == uMsgRestore) {
                 Shell_NotifyIconW(NIM_DELETE, &nid);
                 Shell_NotifyIconW(NIM_ADD, &nid);
+                Shell_NotifyIconW(NIM_SETVERSION, &nid);
                 break;
             }
             return DefWindowProcW(hMainWnd, message, wParam, lParam);
@@ -446,8 +446,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
         if (VK_LWIN == pkhs->vkCode) bLWIN = TRUE;
 
         // 'I' key
-        if (KEY_I == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed)
-        {
+        if (KEY_I == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed) {
             logger.Out(L"%s(%d): Pressed LCTRL + LWIN + I", TEXT(__FUNCTION__), __LINE__);
 
             bKPressed = TRUE;
@@ -457,8 +456,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
         }
 
         // 'C' key
-        if (KEY_C == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed && !bKEYV)
-        {
+        if (KEY_C == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed && !bKEYV) {
             logger.Out(L"%s(%d): Pressed LCTRL + LWIN + C", TEXT(__FUNCTION__), __LINE__);
 
             bKPressed = TRUE;
@@ -469,8 +467,7 @@ LRESULT CALLBACK KeyboardHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
         }
 
         // 'V' key
-        if (KEY_V == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed && !bKEYV)
-        {
+        if (KEY_V == pkhs->vkCode && bLCTRL && bLWIN && !bKPressed && !bKEYV) {
             logger.Out(L"%s(%d): Pressed LCTRL + LWIN + V", TEXT(__FUNCTION__), __LINE__);
 
             bKPressed = TRUE; bKEYV = TRUE;

@@ -252,9 +252,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     HeapFree(hHeap, NULL, szWinClassBuffer);
     HeapFree(hHeap, NULL, szWinTitleBuffer);
 
-    logger.Out(L"Exit from the %s() function, msg.wParam = 0x%0*tX", TEXT(__FUNCTION__), (sizeof(int) * 2), static_cast<int>(msg.wParam));
+    logger.Out(L"Exit from the %s() function, msg.wParam = 0x%0*tX", TEXT(__FUNCTION__), (sizeof(UINT_PTR) * 2), static_cast<UINT_PTR>(msg.wParam));
 
-    return static_cast<int>(msg.wParam);
+    return static_cast<UINT_PTR>(msg.wParam);
 }
 
 LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lParam) {

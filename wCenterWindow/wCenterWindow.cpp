@@ -23,7 +23,6 @@
 // wCenterWindow
 // wCenterWindow.cpp
 
-// TODO: Add the name of app's icon author to the About dialog.
 // TODO: Move the InitCommonControlsEx() function to the WinMain().
 // TODO: Split main cpp-file to separate files.
 // TODO: Make the automatic updater (download, unzip and replace executable).

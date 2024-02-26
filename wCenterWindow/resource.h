@@ -44,6 +44,7 @@
 #define IDC_ABOUT_COPYRIGHT             1013
 #define IDC_ABOUT_BUILDTIME             1014
 #define IDC_ABOUTEDIT                   1015
+#define IDC_ABOUT_COPYRIGHT_ICON        1016
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

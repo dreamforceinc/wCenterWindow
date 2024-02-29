@@ -1,7 +1,7 @@
 ## wCenterWindow
 
-Copyright (c) 2020 - 2024 Vladislav Salikov aka W0LF
-Program's icon made by Kirill Topov
+Copyright (c) 2020 - 2024 Vladislav Salikov aka W0LF.<br>
+Program's icon made by Kirill Topov.
 
 ---
 
@@ -30,5 +30,5 @@ This behavior can be bypassed by creating a task in the Task Scheduler with the 
 
 ## License
 
-This software is licensed under a [MIT License](https://mit-license.org).
+This software is licensed under a [MIT License](https://mit-license.org).<br>
 This software uses the [PicoJSON](https://github.com/kazuho/picojson) - a C++ JSON parser / serializer.

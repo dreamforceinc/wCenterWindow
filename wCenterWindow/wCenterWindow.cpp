@@ -385,9 +385,9 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
         default:
         {
             if (message == uMsgRestore) {
-                Shell_NotifyIconW(NIM_DELETE, &nid);
-                Shell_NotifyIconW(NIM_ADD, &nid);
-                Shell_NotifyIconW(NIM_SETVERSION, &nid);
+                logger.Out(L"%s(%d): Recieved the 'TaskbarCreated' message", TEXT(__FUNCTION__), __LINE__);
+
+                HandlingTrayIcon();
                 break;
             }
             return DefWindowProcW(hMainWnd, message, wParam, lParam);

@@ -31,4 +31,4 @@ This behavior can be bypassed by creating a task in the Task Scheduler with the 
 ## License
 
 This software is licensed under a [MIT License](https://mit-license.org).<br>
-This software uses the [PicoJSON](https://github.com/kazuho/picojson) - a C++ JSON parser / serializer.
+This software uses the [PicoJSON](https://github.com/kazuho/picojson) - a C++ JSON parser / serializer by Kazuho Oku.

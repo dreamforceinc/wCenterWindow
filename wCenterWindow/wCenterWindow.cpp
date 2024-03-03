@@ -1,7 +1,6 @@
 // wCenterWindow
 // wCenterWindow.cpp
 
-// TODO: Move the InitCommonControlsEx() function to the WinMain().
 // TODO: Split main cpp-file to separate files.
 // TODO: Make the automatic updater (download, unzip and replace executable).
 // TODO: Change keyboard low-level hook to RegisterHotKey function. (Is it really needed?)
@@ -43,7 +42,7 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK KeyboardHookProc(int, WPARAM, LPARAM);
 LRESULT CALLBACK MouseHookProc(int, WPARAM, LPARAM);
 INT_PTR	CALLBACK DlgProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM);
+HRESULT CALLBACK AboutCallback(HWND, UINT, WPARAM, LPARAM, LONG_PTR);
 
 static VOID MoveWindowToMonitorCenter(HWND hwnd, BOOL bWorkArea, BOOL bResize) {
     logger.Out(L"Entering the %s() function", TEXT(__FUNCTION__));
@@ -349,7 +348,32 @@ LRESULT CALLBACK WndProc(HWND hMainWnd, UINT message, WPARAM wParam, LPARAM lPar
                         logger.Out(L"%s(%d): Pressed the 'About' menuitem", TEXT(__FUNCTION__), __LINE__);
 
                         bKPressed = TRUE;
-                        DialogBoxParamW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(IDD_ABOUTBOX), hMainWnd, static_cast<DLGPROC>(About), 0L);
+                        WCHAR szContent[MAX_LOADSTRING * 6] = { 0 };
+                        StringCchPrintfW(szContent, ARRAYSIZE(szContent),
+                            L"%s\n%s\n\n%s\n%s\n%s",
+                            TEXT(PRODUCT_COPYRIGHT),
+                            L"Program icon made by Kirill Topov.",
+                            L"This software is licensed under a <A HREF=\"https://mit-license.org\">MIT License</A>.",
+                            L"This software uses the <A HREF=\"https://github.com/kazuho/picojson\">PicoJSON</A> - a C++ JSON parser/serializer by Kazuho Oku.",
+#ifndef NO_DONATION
+                            L"\n<A HREF=\"https://www.paypal.com/paypalme/VladislavSalikov\">Donate via PayPal</A>"
+#else
+                            L""
+#endif // !NO_DONATION
+                        );
+
+                        TASKDIALOGCONFIG tdc = { 0 };
+                        tdc.cbSize = sizeof(tdc);
+                        tdc.hInstance = GetModuleHandleW(NULL);
+                        tdc.dwFlags = TDF_ENABLE_HYPERLINKS | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_HICON_MAIN | TDF_SIZE_TO_CONTENT;
+                        tdc.dwCommonButtons = TDCBF_OK_BUTTON;
+                        tdc.pszWindowTitle = L"About";
+                        tdc.hMainIcon = hIconLarge;
+                        tdc.pszMainInstruction = TEXT(PRODUCT_NAME_FULL);
+                        tdc.pszContent = szContent;
+                        tdc.pfCallback = AboutCallback;
+                        TaskDialogIndirect(&tdc, NULL, NULL, NULL);
+
                         bKPressed = FALSE;
                     }
                     break;
@@ -612,65 +636,9 @@ VOID ShowPopupMenu(HWND hMainWnd, POINT pt) {
     PostMessageW(hMainWnd, WM_NULL, 0, 0);
 }
 
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
-    INITCOMMONCONTROLSEX icex = { 0 };
-    icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
-    icex.dwICC = ICC_LINK_CLASS;
-    InitCommonControlsEx(&icex);
-
-    switch (message) {
-        case WM_INITDIALOG:
-        {
-            logger.Out(L"%s(%d): Initializing the 'About' dialog", TEXT(__FUNCTION__), __LINE__);
-
-            WCHAR szAboutProgName[MAX_LOADSTRING];
-            WCHAR szAboutCopyright[MAX_LOADSTRING];
-            WCHAR szAboutBuildTime[MAX_LOADSTRING];
-            MultiByteToWideChar(1251, 0, PRODUCT_NAME_FULL, _countof(PRODUCT_NAME_FULL), szAboutProgName, MAX_LOADSTRING);
-            MultiByteToWideChar(1251, 0, PRODUCT_COPYRIGHT, _countof(PRODUCT_COPYRIGHT), szAboutCopyright, MAX_LOADSTRING);
-            MultiByteToWideChar(1251, 0, ABOUT_BUILD, _countof(ABOUT_BUILD), szAboutBuildTime, MAX_LOADSTRING);
-            SetDlgItemTextW(hDlg, IDC_ABOUT_PROGNAME, szAboutProgName);
-            SetDlgItemTextW(hDlg, IDC_ABOUT_COPYRIGHT, szAboutCopyright);
-            SetDlgItemTextW(hDlg, IDC_ABOUT_BUILDTIME, szAboutBuildTime);
-#ifdef NO_DONATION
-            HWND hLink = GetDlgItem(hDlg, IDC_DONATIONLINK);
-            if (hLink) DestroyWindow(hLink);
-            HWND hText = GetDlgItem(hDlg, IDC_DONATIONTEXT);
-            if (hText) DestroyWindow(hText);
-#endif // !NO_DONATION
-
-            logger.Out(L"%s(%d): End of initializing the 'About' dialog", TEXT(__FUNCTION__), __LINE__);
-
-            return static_cast<INT_PTR>(TRUE);
-            break;
-        }
-
-        case WM_NOTIFY:
-        {
-            LPNMHDR pNMHdr = (LPNMHDR)lParam;
-            if ((NM_CLICK == pNMHdr->code || NM_RETURN == pNMHdr->code) && IDC_DONATIONLINK == pNMHdr->idFrom) {
-                PNMLINK pNMLink = (PNMLINK)pNMHdr;
-                LITEM item = pNMLink->item;
-                ShellExecuteW(NULL, L"open", item.szUrl, NULL, NULL, SW_SHOW);
-
-                logger.Out(L"%s(%d): Pressed the donation link! :-)", TEXT(__FUNCTION__), __LINE__);
-
-                return static_cast<INT_PTR>(TRUE);
-            }
-            break;
-        }
-
-        case WM_COMMAND:
-        {
-            if (IDOK == LOWORD(wParam) || IDCANCEL == LOWORD(wParam)) {
-                EndDialog(hDlg, LOWORD(wParam));
-
-                logger.Out(L"%s(%d): Closing the 'About' dialog", TEXT(__FUNCTION__), __LINE__);
-
-                return static_cast<INT_PTR>(TRUE);
-            }
-            break;
-        }
+HRESULT CALLBACK AboutCallback(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam, LONG_PTR lpRefData) {
+    if (TDN_HYPERLINK_CLICKED == uMsg) {
+        ShellExecuteW(hDlg, L"open", reinterpret_cast<LPCWSTR>(lParam), NULL, NULL, SW_SHOW);
     }
-    return static_cast<INT_PTR>(FALSE);
+    return S_OK;
 }

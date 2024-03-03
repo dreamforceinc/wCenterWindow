@@ -1,7 +1,7 @@
 ## wCenterWindow
 
-Copyright (c) 2020 - 2024 Vladislav Salikov aka W0LF.<br>
-Program's icon made by Kirill Topov.
+Copyright (c) 2020-2024 Vladislav Salikov aka W0LF.<br>
+Program icon made by Kirill Topov.
 
 ---
 

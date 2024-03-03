@@ -14,7 +14,7 @@
 #define ARCH 86
 #endif
 
-#define MAX_LOADSTRING 50
+#define MAX_LOADSTRING 64
 
 // Windows Header Files
 #include <fstream>
